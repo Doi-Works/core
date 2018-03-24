@@ -1,21 +1,21 @@
-Namecoin Core integration/staging tree
+DoiChain Core integration/staging tree
 =====================================
 
 [![Build Status](https://travis-ci.org/namecoin/namecoin-core.svg?branch=master)](https://travis-ci.org/namecoin/namecoin-core)
 
-https://namecoin.org
+https://doichain.org
 
-What is Namecoin? 
+What is DoiChain? 
 ----------------
 
-Namecoin is a decentralized open source information registration and transfer system based on the Bitcoin cryptocurrency.
+DoiChain is a decentralized open source email double-opt-in registration system based on the Namecoin and Bitcoin cryptocurrency.
 
 What does it do?
 ----------------
 
-* Securely record and transfer arbitrary names (keys).
-* Attach a value (data) to the names (up to 520 bytes, more in the future).
-* Transact namecoins, the digital currency (ℕ, NMC).
+* Securely records doupble-opt-in email permissions for email sender.
+* Test 
+* Transact doi, the digital currency (DOI).
 
 Namecoin was the first fork of Bitcoin and still is one of the most innovative altcoins. It was first to implement merged mining and a decentralized DNS. Namecoin squares Zooko's Triangle!
 

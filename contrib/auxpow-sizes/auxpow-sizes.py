@@ -22,7 +22,7 @@ import urllib
 
 username = urllib.quote_plus ("namecoin")
 password = urllib.quote_plus ("password")
-port = 8336
+port = 8339
 url = "http://%s:%s@localhost:%d/" % (username, password, port)
 
 class AuxpowStats:
