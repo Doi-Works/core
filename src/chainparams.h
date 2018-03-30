@@ -10,7 +10,7 @@
 #include <consensus/params.h>
 #include <primitives/block.h>
 #include <protocol.h>
-
+#include <arith_uint256.h>
 #include <map>
 #include <memory>
 #include <vector>
@@ -78,8 +78,10 @@ public:
     const Consensus::Params& GetConsensus() const { return consensus; }
     const CMessageHeader::MessageStartChars& MessageStart() const { return pchMessageStart; }
     int GetDefaultPort() const { return nDefaultPort; }
-
+    const uint256& HashGenesisBlock() const { return hashGenesisBlock; }
+    const arith_uint256& ProofOfWorkLimit() const { return bnProofOfWorkLimit; }
     const CBlock& GenesisBlock() const { return genesis; }
+
     /** Default value for -checkmempool and -checkblockindex argument */
     bool DefaultConsistencyChecks() const { return fDefaultConsistencyChecks; }
     /** Default value for -checknamedb argument */
@@ -107,7 +109,7 @@ public:
 
 protected:
     CChainParams() {}
-
+    uint256 hashGenesisBlock;
     Consensus::Params consensus;
     CMessageHeader::MessageStartChars pchMessageStart;
     int nDefaultPort;
@@ -117,6 +119,7 @@ protected:
     std::string bech32_hrp;
     std::string strNetworkID;
     CBlock genesis;
+    arith_uint256 bnProofOfWorkLimit;
     std::vector<SeedSpec6> vFixedSeeds;
     bool fDefaultConsistencyChecks;
     bool fRequireStandard;

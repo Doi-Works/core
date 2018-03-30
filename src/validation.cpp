@@ -1113,8 +1113,9 @@ bool CheckProofOfWork(const CBlockHeader& block, const Consensus::Params& params
         if (block.IsAuxpow())
             return error("%s : no auxpow on block with auxpow version",
                          __func__);
-//        if (!CheckProofOfWork(block.GetHash(), block.nBits, params))
-//            return error("%s : non-AUX proof of work failed", __func__);
+
+        if (!CheckProofOfWork(block.GetHash(), block.nBits, params))
+            return error("%s : non-AUX proof of work failed", __func__);
 
         return true;
     }
@@ -1235,7 +1236,7 @@ bool IsInitialBlockDownload()
         return false;
 
     LOCK(cs_main);
-  /*  if (latchToFalse.load(std::memory_order_relaxed))
+    if (latchToFalse.load(std::memory_order_relaxed))
         return false;
     if (fImporting || fReindex)
         return true;
@@ -1244,7 +1245,7 @@ bool IsInitialBlockDownload()
     if (chainActive.Tip()->nChainWork < nMinimumChainWork)
         return true;
     if (chainActive.Tip()->GetBlockTime() < (GetTime() - nMaxTipAge))
-        return true;*/
+        return true;
     LogPrintf("Leaving InitialBlockDownload (latching to false)\n");
     latchToFalse.store(true, std::memory_order_relaxed);
     return false;
@@ -1353,7 +1354,7 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
       log(pindexNew->nChainWork.getdouble())/log(2.0), DateTimeStrFormat("%Y-%m-%d %H:%M:%S",
       pindexNew->GetBlockTime()));
     CBlockIndex *tip = chainActive.Tip();
-   // assert (tip);
+    assert (tip);
     LogPrintf("%s:  current best=%s  height=%d  log2_work=%.8g  date=%s\n", __func__,
       tip->GetBlockHash().ToString(), chainActive.Height(), log(tip->nChainWork.getdouble())/log(2.0),
       DateTimeStrFormat("%Y-%m-%d %H:%M:%S", tip->GetBlockTime()));
