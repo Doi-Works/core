@@ -14,6 +14,7 @@
 
 #include <chainparamsseeds.h>
 
+
 bool CChainParams::IsHistoricBug(const uint256& txid, unsigned nHeight, BugType& type) const
 {
     const std::pair<unsigned, uint256> key(nHeight, txid);
@@ -58,8 +59,8 @@ static CBlock CreateGenesisBlock(const CScript& genesisInputScript, const CScrip
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
     const char* pszTimestamp = "Jeder hat seine Sorgen: Daimler-Chef stört sich an seiner Gehaltsdeckelung von 10 Millionen Euro";
-    const CScript genesisInputScript = CScript() << 0x1c007fff << CScriptNum(522) << std::vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-    const CScript genesisOutputScript = CScript() << ParseHex("0401f721b37aa5f3f03892e75d63908ac584a4caa2433594e5dab420e490cfc6634b8c48d449243e73fa7da698a7ee54114af9eb7a0f2bac4971ba257e69976238") << OP_CHECKSIG;
+    const CScript genesisInputScript = CScript() << 0x1f00ffff << CScriptNum(4) << std::vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+    const CScript genesisOutputScript = CScript() << ParseHex("042f413ffbe86df73d195832efd61003fe4e7f6c061e75afa06365928fa649dd4a408c4029ca98c9a0bfda2b99e53c587c95d566375036c7f85be51b5a4e150118") << OP_CHECKSIG;
     return CreateGenesisBlock(genesisInputScript, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
 }
 
@@ -71,7 +72,7 @@ static CBlock CreateTestnetGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_
 {
     const char* pszTimestamp = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
     const CScript genesisInputScript = CScript() << 0x1d00ffff << CScriptNum(4) << std::vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-    const CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
+    const CScript genesisOutputScript = CScript() << ParseHex("04a3a1fe1194050356b1096fc9588a165eb89f69283d327e599809d77bd7af08277cae0e579f687b83d840ae371db2cfafb1d5432943b0675c2f25ebf1f1f87773") << OP_CHECKSIG;
     return CreateGenesisBlock(genesisInputScript, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
 }
 
@@ -103,10 +104,10 @@ public:
         // FIXME: Activate BIP16 with a softfork.
         consensus.BIP16Height = 0;
         consensus.BIP34Height = 100000000;
-        consensus.BIP34Hash =  uint256S("0x1414f096a62bee2501807a9a2a97c20557df1fdfb1284f9eaff88d60defe0750");
+        consensus.BIP34Hash =  	uint256S("0x1414f096a62bee2501807a9a2a97c20557df1fdfb1284f9eaff88d60defe0750");
         consensus.BIP65Height = 130000;
         consensus.BIP66Height = 130000;
-        consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        consensus.powLimit = 	uint256S("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
         consensus.nPowTargetSpacing = 10 * 60;
         consensus.fPowAllowMinDifficultyBlocks = false;
@@ -132,15 +133,15 @@ public:
         // The value is the chain work of the Namecoin mainnet chain at height
         // 312,290, with best block hash:
         // c98df864dce972b1948314e98e96c8a86d2c0aaa80b421fe651e203f6bab9010
-        consensus.nMinimumChainWork = uint256S("0x00");
+        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000ba50a60f8b56c7fe0");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x00"); //250000
+        consensus.defaultAssumeValid = uint256S("0x00006b0bc91e80054369e07b330c243bf32f4b97f66da976756265b81a9b5828"); //250000
 
-        consensus.nAuxpowChainId = 0x0001;
-        consensus.nAuxpowStartHeight = 0;
+        consensus.nAuxpowChainId = 0x0002;
+        consensus.nAuxpowStartHeight = 1;
         consensus.fStrictChainId = false;
-        consensus.nLegacyBlocksBefore = 0;
+        consensus.nLegacyBlocksBefore = 1;
 
         consensus.rules.reset(new Consensus::MainNetConsensus());
 
@@ -149,18 +150,87 @@ public:
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 32-bit integer with any alignment.
          */
-        pchMessageStart[0] = 0xf9;
-        pchMessageStart[1] = 0xbe;
-        pchMessageStart[2] = 0xb4;
-        pchMessageStart[3] = 0xfe;
+        pchMessageStart[0] = 0xf8;
+        pchMessageStart[1] = 0xb2;
+        pchMessageStart[2] = 0xb2;
+        pchMessageStart[3] = 0xff;
         nDefaultPort = 8338;
         nPruneAfterHeight = 100000;
 
-        genesis = CreateGenesisBlock(1522307912, 3533343619, 0x1c007fff, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(1522426764, 121096, 0x1f00ffff, 1, 50 * COIN);
+
+        //bnProofOfWorkLimit = ~arith_uint256(0) >> 32;
+
+       /*consensus.hashGenesisBlock = uint256S("0x01");
+       if (true && genesis.GetHash() != consensus.hashGenesisBlock)
+                {
+                    printf("recalculating params for mainnet.\n");
+                    printf("old mainnet genesis nonce: %u\n", genesis.nNonce);
+                    printf("old mainnet genesis hash:  %u\n", consensus.hashGenesisBlock);
+                    // deliberately empty for loop finds nonce value.
+                    for(genesis.nNonce == 0; UintToArith256(genesis.GetHash()) >  bnProofOfWorkLimit; genesis.nNonce++){ }
+                    printf("new mainnet genesis merkle root: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+                    printf("new mainnet genesis nonce: %u\n", genesis.nNonce);
+                    printf("new mainnet genesis hash: %s\n", genesis.GetHash().ToString().c_str());
+                }*/
+
+     /*   consensus.hashGenesisBlock = uint256S("0x");
+
+                 // calculate Genesis Block
+                 // Reset genesis
+                 consensus.hashGenesisBlock = uint256S("0x");
+                 std::cout << std::string("Begin calculating Mainnet Genesis Block:\n");
+                 if (true && (genesis.GetHash() != consensus.hashGenesisBlock)) {
+                     LogPrintf("Calculating Mainnet Genesis Block:\n");
+                     arith_uint256 hashTarget = arith_uint256().SetCompact(genesis.nBits);
+                     uint256 hash;
+                     genesis.nNonce = 0;
+                     // This will figure out a valid hash and Nonce if you're
+                     // creating a different genesis block:
+                     // uint256 hashTarget = CBigNum().SetCompact(genesis.nBits).getuint256();
+                     // hashTarget.SetCompact(genesis.nBits, &fNegative, &fOverflow).getuint256();
+                     // while (genesis.GetHash() > hashTarget)
+                     while (UintToArith256(genesis.GetHash()) > hashTarget)
+                     {
+                         ++genesis.nNonce;
+                         if (genesis.nNonce == 0)
+                         {
+                             LogPrintf("NONCE WRAPPED, incrementing time");
+                             std::cout << std::string("NONCE WRAPPED, incrementing time:\n");
+                             ++genesis.nTime;
+                         }
+                         if (genesis.nNonce % 10000 == 0)
+                         {
+                             LogPrintf("Mainnet: nonce %08u: hash = %s \n", genesis.nNonce, genesis.GetHash().ToString().c_str());
+                             // std::cout << strNetworkID << " nonce: " << genesis.nNonce << " time: " << genesis.nTime << " hash: " << genesis.GetHash().ToString().c_str() << "\n";
+                         }
+                     }
+                     std::cout << "Mainnet ---\n";
+                     std::cout << "  nonce: " << genesis.nNonce <<  "\n";
+                     std::cout << "   time: " << genesis.nTime << "\n";
+                     std::cout << "   hash: " << genesis.GetHash().ToString().c_str() << "\n";
+                     std::cout << "   merklehash: "  << genesis.hashMerkleRoot.ToString().c_str() << "\n";
+                     // Mainnet --- nonce: 296277 time: 1390095618 hash: 000000bdd771b14e5a031806292305e563956ce2584278de414d9965f6ab54b0
+                 }
+                 std::cout << std::string("Finished calculating Mainnet Genesis Block:\n");
+*/
+
         consensus.hashGenesisBlock = genesis.GetHash();
         printf("Block: %s\n", genesis.GetHash().GetHex().c_str());
-        assert(consensus.hashGenesisBlock == uint256S("0x000000002636fa77dda3b1bac7179260768eb8a570eeb4aab7c02d48e4ecd196"));
-        assert(genesis.hashMerkleRoot == uint256S("0xad2bd6d26ebc121e0d4258224ef1936fad5f0d13b7100ea1e6da9c053f39e513"));
+        printf("hashMerkleRoot: %s\n", genesis.hashMerkleRoot.GetHex().c_str());
+        assert(consensus.hashGenesisBlock == uint256S("0000305b861558df07d91d192e513258eddd6fd6b2589691d74320f0849195bd"));
+        assert(genesis.hashMerkleRoot == uint256S("e621ab6805d649c51006defef49e1f1a9563ed6f82ab36409c47c95351a19016"));
+
+        /*
+Mainnet ---
+  nonce: 81850
+   time: 1522426764
+   hash: 00006b0bc91e80054369e07b330c243bf32f4b97f66da976756265b81a9b5828
+   merklehash: 2e32519b6d57327bfc9c7244068dc5405e6302c0a597324404427a3389ed5b9f
+Finished calculating Mainnet Genesis Block:
+Block: 00006b0bc91e80054369e07b330c243bf32f4b97f66da976756265b81a9b5828
+hashMerkleRoot: 2e32519b6d57327bfc9c7244068dc5405e6302c0a597324404427a3389ed5b9f
+*/
 
         // Note that of those which support the service bits prefix, most only support a subset of
         // possible options.
@@ -189,8 +259,8 @@ public:
 
         checkpointData = {
             {
-               /* {  2016, uint256S("0000000000660bad0d9fbde55ba7ee14ddf766ed5f527e3fbca523ac11460b92")},
-                {  4032, uint256S("0000000000493b5696ad482deb79da835fe2385304b841beef1938655ddbc411")},
+              {  0, uint256S("0000305b861558df07d91d192e513258eddd6fd6b2589691d74320f0849195bd")},
+			  /*    {  4032, uint256S("0000000000493b5696ad482deb79da835fe2385304b841beef1938655ddbc411")},
                 {  6048, uint256S("000000000027939a2e1d8bb63f36c47da858e56d570f143e67e85068943470c9")},
                 {  8064, uint256S("000000000003a01f708da7396e54d081701ea406ed163e519589717d8b7c95a5")},
                 { 10080, uint256S("00000000000fed3899f818b2228b4f01b9a0a7eeee907abd172852df71c64b06")},
@@ -208,10 +278,10 @@ public:
         };
 
         chainTxData = ChainTxData{
-            0,// * UNIX timestamp of last known number of transactions
+        	1522426764,// * UNIX timestamp of last known number of transactions
             0, // * total number of transactions between genesis and that timestamp
             //   (the tx=... number in the SetBestChain debug.log lines)
-            0 // * estimated number of transactions per second after checkpoint
+            1 // * estimated number of transactions per second after checkpoint
         };
 
         /* See also doc/NamecoinBugs.txt for more explanation on the
