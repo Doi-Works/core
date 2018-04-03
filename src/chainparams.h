@@ -79,7 +79,6 @@ public:
     const CMessageHeader::MessageStartChars& MessageStart() const { return pchMessageStart; }
     int GetDefaultPort() const { return nDefaultPort; }
     const uint256& HashGenesisBlock() const { return hashGenesisBlock; }
-    const arith_uint256& ProofOfWorkLimit() const { return bnProofOfWorkLimit; }
     const CBlock& GenesisBlock() const { return genesis; }
 
     /** Default value for -checkmempool and -checkblockindex argument */
@@ -119,7 +118,6 @@ protected:
     std::string bech32_hrp;
     std::string strNetworkID;
     CBlock genesis;
-    arith_uint256 bnProofOfWorkLimit;
     std::vector<SeedSpec6> vFixedSeeds;
     bool fDefaultConsistencyChecks;
     bool fRequireStandard;
