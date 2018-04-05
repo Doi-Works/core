@@ -337,7 +337,8 @@ public:
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
         consensus.nPowTargetSpacing = 10 * 60;
         consensus.fPowAllowMinDifficultyBlocks = true;
-        consensus.nMinDifficultySince = 1394838000; // 15 Mar 2014
+        consensus.nMinDifficultySince = 0;
+        //consensus.nMinDifficultySince = 1394838000; // 15 Mar 2014
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1512; // 75% for testchains
         consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
@@ -380,11 +381,11 @@ public:
 
         genesis = CreateTestnetGenesisBlock(1522756358, 6658, 0x1f08ffff, 1, 50 * COIN);
 
-        consensus.hashGenesisBlock = uint256S("0x");
+        /*        consensus.hashGenesisBlock = uint256S("0x");
 
                       // calculate Genesis Block
                       // Reset genesis
-         /*             consensus.hashGenesisBlock = uint256S("0x");
+            consensus.hashGenesisBlock = uint256S("0x");
                       std::cout << std::string("Begin calculating Testnet Genesis Block:\n");
                       if (true && (genesis.GetHash() != consensus.hashGenesisBlock)) {
                           LogPrintf("Calculating Testnet Genesis Block:\n");
@@ -519,10 +520,51 @@ public:
         nDefaultPort = 18445;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateTestnetGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
+        genesis = CreateTestnetGenesisBlock(1296688602, 0, 0x207fffff, 1, 50 * COIN);
+
+/*
+
+                      // calculate Genesis Block
+                      // Reset genesis
+            consensus.hashGenesisBlock = uint256S("0x");
+                      std::cout << std::string("Begin calculating RegTest Genesis Block:\n");
+                      if (true && (genesis.GetHash() != consensus.hashGenesisBlock)) {
+                          LogPrintf("Calculating RegTest Genesis Block:\n");
+                          arith_uint256 hashTarget = arith_uint256().SetCompact(genesis.nBits);
+                          uint256 hash;
+                          genesis.nNonce = 0;
+                          // This will figure out a valid hash and Nonce if you're
+                          // creating a different genesis block:
+                          // uint256 hashTarget = CBigNum().SetCompact(genesis.nBits).getuint256();
+                          // hashTarget.SetCompact(genesis.nBits, &fNegative, &fOverflow).getuint256();
+                          // while (genesis.GetHash() > hashTarget)
+                          while (UintToArith256(genesis.GetHash()) > hashTarget)
+                          {
+                              ++genesis.nNonce;
+                              if (genesis.nNonce == 0)
+                              {
+                                  LogPrintf("NONCE WRAPPED, incrementing time");
+                                  std::cout << std::string("NONCE WRAPPED, incrementing time:\n");
+                                  ++genesis.nTime;
+                              }
+                              if (genesis.nNonce % 10000 == 0)
+                              {
+                                  LogPrintf("RegTest: nonce %08u: hash = %s \n", genesis.nNonce, genesis.GetHash().ToString().c_str());
+                                  // std::cout << strNetworkID << " nonce: " << genesis.nNonce << " time: " << genesis.nTime << " hash: " << genesis.GetHash().ToString().c_str() << "\n";
+                              }
+                          }
+                          std::cout << "RegTest ---\n";
+                          std::cout << "  nonce: " << genesis.nNonce <<  "\n";
+                          std::cout << "   time: " << genesis.nTime << "\n";
+                          std::cout << "   hash: " << genesis.GetHash().ToString().c_str() << "\n";
+                          std::cout << "   merklehash: "  << genesis.hashMerkleRoot.ToString().c_str() << "\n";
+                          // Mainnet --- nonce: 296277 time: 1390095618 hash: 000000bdd771b14e5a031806292305e563956ce2584278de414d9965f6ab54b0
+                      }
+                      std::cout << std::string("Finished calculating RegTest Genesis Block:\n");
+*/
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
-        assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
+        assert(consensus.hashGenesisBlock == uint256S("0231881e96d6690eb00bb69cd8e221df3564e2cd95829d47d131ed5110a34e9d"));
+        assert(genesis.hashMerkleRoot == uint256S("8de06f9a125793c3b6bfe7e3bc473ba2bb505b234af5d7e999bda03ed3f4ac34"));
 
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.
