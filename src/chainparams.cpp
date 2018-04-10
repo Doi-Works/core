@@ -134,7 +134,7 @@ public:
         // 312,290, with best block hash:
         // c98df864dce972b1948314e98e96c8a86d2c0aaa80b421fe651e203f6bab9010
         //consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000ba50a60f8b56c7fe0");
-   consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000000002b91bda2ddf118");
+        consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000000002b91bda2ddf118");
 
         // By default assume that the signatures in ancestors of this block are valid.
         consensus.defaultAssumeValid = uint256S("0x00006b0bc91e80054369e07b330c243bf32f4b97f66da976756265b81a9b5828"); //250000
