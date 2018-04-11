@@ -616,7 +616,7 @@ CheckNameTransaction (const CTransaction& tx, unsigned nHeight,
 									 " on an unexpired name"));
     }
 
-  	  //TODO any checkou on OP_NAME_DOI
+  	//TODO any checkou on OP_NAME_DOI
 
   /* We don't have to specifically check that miners don't create blocks with
      conflicting NAME_FIRSTUPDATE's, since the mining's CCoinsViewCache
