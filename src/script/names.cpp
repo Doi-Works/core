@@ -55,6 +55,11 @@ CNameScript::CNameScript (const CScript& script)
         return;
       break;
 
+    case OP_NAME_DOI:
+      if (args.size () != 2)
+        return;
+      break;
+
     default:
       return;
     }
@@ -68,6 +73,15 @@ CNameScript::buildNameNew (const CScript& addr, const uint160& hash)
 {
   CScript prefix;
   prefix << OP_NAME_NEW << ToByteVector (hash) << OP_2DROP;
+
+  return prefix + addr;
+}
+
+CScript
+CNameScript::buildNameDOI (const CScript& addr, const valtype& name, const valtype& value)
+{
+  CScript prefix;
+  prefix << OP_NAME_DOI << name << value << OP_2DROP << OP_2DROP;
 
   return prefix + addr;
 }

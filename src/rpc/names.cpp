@@ -473,7 +473,7 @@ name_pending (const JSONRPCRequest& request)
       for (const auto& txOut : tx->vout)
         {
           const CNameScript op(txOut.scriptPubKey);
-          if (!op.isNameOp () || !op.isAnyUpdate ())
+          if ((!op.isNameOp () || !op.isAnyUpdate ()) && !op.isDoiRegistration ())
             continue;
 
           const valtype vchName = op.getOpName ();
@@ -490,6 +490,9 @@ name_pending (const JSONRPCRequest& request)
               break;
             case OP_NAME_UPDATE:
               strOp = "name_update";
+              break;
+            case OP_NAME_DOI:
+              strOp = "name_doi";
               break;
             default:
               assert (false);
@@ -532,6 +535,11 @@ namerawtransaction (const JSONRPCRequest& request)
         "2. vout              (numeric, required) The vout of the desired name output\n"
         "3. nameop            (object, required) Json object for name operation.\n"
         "                     The operation can be either of:\n"
+		"    {\n"
+		"      \"op\": \"name_doi\",\n"
+		"      \"name\": xxx,         (string, required) The name to register\n"
+		"      \"value\": xxx,        (string, required) The name's value\n"
+		"    }\n"
         "    {\n"
         "      \"op\": \"name_new\",\n"
         "      \"name\": xxx,         (string, required) The name to register\n"
@@ -556,6 +564,7 @@ namerawtransaction (const JSONRPCRequest& request)
         + HelpExampleCli ("namerawtransaction", R"("raw tx hex" 1 "{\"op\":\"name_new\",\"name\":\"my-name\")")
         + HelpExampleCli ("namerawtransaction", R"("raw tx hex" 1 "{\"op\":\"name_firstupdate\",\"name\":\"my-name\",\"value\":\"new value\",\"rand\":\"00112233\")")
         + HelpExampleCli ("namerawtransaction", R"("raw tx hex" 1 "{\"op\":\"name_update\",\"name\":\"my-name\",\"value\":\"new value\")")
+		+ HelpExampleCli ("namerawtransaction", R"("raw tx hex" 1 "{\"op\":\"name_doi\",\"name\":\"my-name\",\"value\":\"new value\")")
         + HelpExampleRpc ("namerawtransaction", R"("raw tx hex", 1, "{\"op\":\"name_update\",\"name\":\"my-name\",\"value\":\"new value\")")
       );
 
@@ -614,6 +623,22 @@ namerawtransaction (const JSONRPCRequest& request)
       mtx.vout[nOut].scriptPubKey
         = CNameScript::buildNameNew (mtx.vout[nOut].scriptPubKey, hash);
       result.pushKV ("rand", HexStr (rand.begin (), rand.end ()));
+    }
+  else if (op == "name_doi")
+    {
+      RPCTypeCheckObj (nameOp,
+        {
+          {"name", UniValueType (UniValue::VSTR)},
+          {"value", UniValueType (UniValue::VSTR)},
+        }
+      );
+
+      const valtype name
+        = ValtypeFromString (find_value (nameOp, "name").get_str ());
+      const valtype value
+        = ValtypeFromString (find_value (nameOp, "value").get_str ());
+
+      mtx.vout[nOut].scriptPubKey = CNameScript::buildNameDOI (mtx.vout[nOut].scriptPubKey,name, value);
     }
   else if (op == "name_firstupdate")
     {

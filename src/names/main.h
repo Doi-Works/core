@@ -121,6 +121,11 @@ private:
    */
   NameTxMap mapNameNews;
 
+  /**
+   * Map name_doi hashes
+   */
+  NameTxMap mapNameDois;
+
 public:
 
   /**
@@ -128,7 +133,7 @@ public:
    * @param p The parent pool.
    */
   explicit inline CNameMemPool (CTxMemPool& p)
-    : pool(p), mapNameRegs(), mapNameUpdates(), mapNameNews()
+    : pool(p), mapNameRegs(), mapNameUpdates(), mapNameNews(), mapNameDois()
   {}
 
   /**
@@ -136,7 +141,7 @@ public:
    * some transaction in the mempool.  Does not lock, this is
    * done by the parent mempool (which calls through afterwards).
    * @param name The name to check for.
-   * @return True iff there's a matching name registration in the pool.
+   * @return True if there's a matching name registration in the pool.
    */
   inline bool
   registersName (const valtype& name) const
@@ -147,13 +152,25 @@ public:
   /**
    * Check whether a particular name has a pending update.  Does not lock.
    * @param name The name to check for.
-   * @return True iff there's a matching name update in the pool.
+   * @return True if there's a matching name update in the pool.
    */
   inline bool
   updatesName (const valtype& name) const
   {
     return mapNameUpdates.count (name) > 0;
   }
+
+  /**
+   * Check whether a particular DOI is being registered.  Does not lock.
+   * @param name The name to check for.
+   * @return True if there's a matching doi in the pool.
+   */
+  inline bool
+  registersDoi (const valtype& name) const
+  {
+    return mapNameDois.count (name) > 0;
+  }
+
 
   /**
    * Return txid of transaction registering or updating a name.  The returned
@@ -172,6 +189,7 @@ public:
     mapNameRegs.clear ();
     mapNameUpdates.clear ();
     mapNameNews.clear ();
+    mapNameDois.clear();
   }
 
   /**

@@ -170,7 +170,16 @@ void ScriptPubKeyToUniv(const CScript& scriptPubKey,
             jsonOp.pushKV ("value", value);
             break;
         }
+        case OP_NAME_DOI:
+        {
+            const std::string name = ValtypeToString (nameOp.getOpName ());
+            const std::string value = ValtypeToString (nameOp.getOpValue ());
 
+            jsonOp.pushKV ("op", "name_doi");
+            jsonOp.pushKV ("name", name);
+            jsonOp.pushKV ("value", value);
+            break;
+        }
         default:
             assert (false);
         }

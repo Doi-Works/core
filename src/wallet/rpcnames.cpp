@@ -131,7 +131,7 @@ name_list (const JSONRPCRequest& request)
             }
         }
 
-      if (nOut == -1 || !nameOp.isAnyUpdate ())
+      if (nOut == -1 || (!nameOp.isAnyUpdate () && !nameOp.isDoiRegistration()))
         continue;
 
       const valtype& name = nameOp.getOpName ();
@@ -240,6 +240,111 @@ name_new (const JSONRPCRequest& request)
   res.push_back (randStr);
 
   return res;
+}
+
+/* ************************************************************************** */
+
+UniValue
+name_doi (const JSONRPCRequest& request)
+{
+
+  printf("test debug name_doi 0");
+
+  CWallet* const pwallet = GetWalletForJSONRPCRequest(request);
+  if (!EnsureWalletIsAvailable (pwallet, request.fHelp))
+    return NullUniValue;
+
+  if (request.fHelp || (request.params.size () != 2 && request.params.size () != 3))
+    throw std::runtime_error (
+        "name_doi \"name\" \"value\" (\"toaddress\")\n"
+        "\nStart doi registration the given name and value and possibly transfer it.\n"
+        + HelpRequiringPassphrase (pwallet) +
+        "\nArguments:\n"
+        "1. \"name\"          (string, required) the name under which the doi will be registered\n"
+        "2. \"value\"         (string, required) value for the name - containing all necessary information of a valid soi/doi\n"
+        "3. \"toaddress\"     (string, optional) address to send the doi to\n"
+        "\nResult:\n"
+        "\"txid\"             (string) the name_doi's txid\n"
+        "\nExamples:\n"
+        + HelpExampleCli ("name_doi", "\"myname\", \"new-value\"")
+        + HelpExampleCli ("name_upname_doidate", "\"myname\", \"new-value\", \"NEX4nME5p3iyNK3gFh4FUeUriHXxEFemo9\"")
+        + HelpExampleRpc ("name_doi", "\"myname\", \"new-value\"")
+      );
+
+  RPCTypeCheck (request.params, {UniValue::VSTR});
+
+  ObserveSafeMode ();
+
+  const std::string nameStr = request.params[0].get_str ();
+   const valtype name = ValtypeFromString (nameStr);
+   if (name.size () > MAX_NAME_LENGTH)
+     throw JSONRPCError (RPC_INVALID_PARAMETER, "the name is too long");
+
+   const std::string valueStr = request.params[1].get_str ();
+   const valtype value = ValtypeFromString (valueStr);
+   if (value.size () > MAX_VALUE_LENGTH_UI)
+     throw JSONRPCError (RPC_INVALID_PARAMETER, "the value is too long");
+
+   {
+     LOCK (mempool.cs);
+     if (mempool.registersDoi (name))
+       throw JSONRPCError (RPC_TRANSACTION_ERROR,
+                           "there is already a registration for this doi name");
+   }
+
+   LogPrintf ("name_doi step 1");
+ /*  CNameData oldData;
+   {
+     LOCK (cs_main);
+     if (!pcoinsTip->GetName (name, oldData) || oldData.isExpired ())
+       throw JSONRPCError (RPC_TRANSACTION_ERROR,
+                           "this name can not be updated");
+   }*/
+
+  // const COutPoint outp = oldData.getUpdateOutpoint ();
+  // const CTxIn txIn(outp);
+
+   EnsureWalletIsUnlocked (pwallet);
+
+   CReserveKey keyName(pwallet);
+   CPubKey pubKey;
+   const bool ok = keyName.GetReservedKey (pubKey, true);
+   assert (ok);
+   bool usedKey = false;
+
+
+ CScript addrName;
+   if (request.params.size () == 3)
+     {
+       keyName.ReturnKey ();
+       const CTxDestination dest = DecodeDestination (request.params[2].get_str ());
+       if (!IsValidDestination (dest))
+         throw JSONRPCError (RPC_INVALID_ADDRESS_OR_KEY, "invalid address");
+
+       addrName = GetScriptForDestination (dest);
+     }
+   else
+     {
+       usedKey = true;
+       addrName = GetScriptForDestination (pubKey.GetID ());
+     }
+
+   const CScript nameScript = CNameScript::buildNameDOI (addrName, name, value);
+
+   CCoinControl coinControl;
+   CWalletTx wtx;
+   SendMoneyToScript (pwallet, nameScript, nullptr,
+                      NAME_LOCKED_AMOUNT, false, wtx, coinControl);
+
+  if (usedKey)
+     keyName.KeepKey ();
+
+   const std::string txid = wtx.GetHash ().GetHex ();
+   LogPrintf ("name_doi: name=%s, value=%s, tx=%s\n",
+              nameStr.c_str (), valueStr.c_str (), txid.c_str ());
+
+
+   return wtx.GetHash ().GetHex ();
 }
 
 /* ************************************************************************** */
@@ -391,8 +496,8 @@ name_update (const JSONRPCRequest& request)
         + HelpRequiringPassphrase (pwallet) +
         "\nArguments:\n"
         "1. \"name\"          (string, required) the name to update\n"
-        "4. \"value\"         (string, required) value for the name\n"
-        "5. \"toaddress\"     (string, optional) address to send the name to\n"
+        "2. \"value\"         (string, required) value for the name\n"
+        "3. \"toaddress\"     (string, optional) address to send the name to\n"
         "\nResult:\n"
         "\"txid\"             (string) the name_update's txid\n"
         "\nExamples:\n"

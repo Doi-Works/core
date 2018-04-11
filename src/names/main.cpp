@@ -81,14 +81,21 @@ CNameMemPool::getTxForName (const valtype& name) const
   mi = mapNameRegs.find (name);
   if (mi != mapNameRegs.end ())
     {
-      assert (mapNameUpdates.count (name) == 0);
+      assert (mapNameUpdates.count (name) == 0 && mapNameDois.count (name));
       return mi->second;
     }
 
   mi = mapNameUpdates.find (name);
   if (mi != mapNameUpdates.end ())
     {
-      assert (mapNameRegs.count (name) == 0);
+      assert (mapNameRegs.count (name) == 0 && mapNameDois.count (name));
+      return mi->second;
+    }
+
+  mi = mapNameDois.find (name);
+  if (mi != mapNameDois.end ())
+    {
+      assert (mapNameRegs.count (name) == 0 && mapNameUpdates.count (name));
       return mi->second;
     }
 
@@ -123,6 +130,14 @@ CNameMemPool::addUnchecked (const uint256& hash, const CTxMemPoolEntry& entry)
       assert (mapNameUpdates.count (name) == 0);
       mapNameUpdates.insert (std::make_pair (name, hash));
     }
+
+  if (entry.isNameDoi ())
+    {
+      const valtype& name = entry.getName ();
+      assert (mapNameDois.count (name) == 0);
+      mapNameDois.insert (std::make_pair (name, hash));
+
+    }
 }
 
 void
@@ -141,6 +156,12 @@ CNameMemPool::remove (const CTxMemPoolEntry& entry)
       const NameTxMap::iterator mit = mapNameUpdates.find (entry.getName ());
       assert (mit != mapNameUpdates.end ());
       mapNameUpdates.erase (mit);
+    }
+  if (entry.isNameDoi ())
+    {
+      const NameTxMap::iterator mit = mapNameDois.find (entry.getName ());
+      assert (mit != mapNameDois.end ());
+      mapNameDois.erase (mit);
     }
 }
 
@@ -226,6 +247,7 @@ CNameMemPool::check (const CCoinsView& coins) const
 
   std::set<valtype> nameRegs;
   std::set<valtype> nameUpdates;
+  std::set<valtype> nameDois;
   for (const auto& entry : pool.mapTx)
     {
       const uint256 txHash = entry.GetTx ().GetHash ();
@@ -274,10 +296,30 @@ CNameMemPool::check (const CCoinsView& coins) const
             assert (false);
           assert (!data.isExpired (nHeight + 1));
         }
+
+      if (entry.isNameDoi ())
+        {
+          const valtype& name = entry.getName ();
+
+          const NameTxMap::const_iterator mit = mapNameDois.find (name);
+          assert (mit != mapNameDois.end ());
+          assert (mit->second == txHash);
+
+          assert (mapNameDois.count (name) == 0);
+          nameDois.insert (name);
+
+          /* As above, use nHeight+1 for the expiration check.  */
+          CNameData data;
+          if (!coins.GetName (name, data))
+            assert (false);
+          assert (!data.isExpired (nHeight + 1));
+        }
     }
 
   assert (nameRegs.size () == mapNameRegs.size ());
   assert (nameUpdates.size () == mapNameUpdates.size ());
+  assert (nameDois.size () == mapNameDois.size ());
+
 
   /* Check that nameRegs and nameUpdates are disjoint.  They must be since
      a name can only be in either category, depending on whether it exists
@@ -286,6 +328,7 @@ CNameMemPool::check (const CCoinsView& coins) const
     assert (nameUpdates.count (name) == 0);
   for (const auto& name : nameUpdates)
     assert (nameRegs.count (name) == 0);
+
 }
 
 bool
@@ -331,6 +374,14 @@ CNameMemPool::checkTx (const CTransaction& tx) const
           {
             const valtype& name = nameOp.getOpName ();
             if (updatesName (name))
+              return false;
+            break;
+          }
+
+        case OP_NAME_DOI:
+          {
+            const valtype& name = nameOp.getOpName ();
+            if (registersDoi (name))
               return false;
             break;
           }
@@ -386,6 +437,7 @@ CheckNameTransaction (const CTransaction& tx, unsigned nHeight,
                       const CCoinsView& view,
                       CValidationState& state, unsigned flags)
 {
+
   const std::string strTxid = tx.GetHash ().GetHex ();
   const char* txid = strTxid.c_str ();
   const bool fMempool = (flags & SCRIPT_VERIFY_NAMES_MEMPOOL);
@@ -436,6 +488,7 @@ CheckNameTransaction (const CTransaction& tx, unsigned nHeight,
         }
     }
 
+  LogPrintf ("CheckNameTransaction Step1\n");
   /* Check that no name inputs/outputs are present for a non-Namecoin tx.
      If that's the case, all is fine.  For a Namecoin tx instead, there
      should be at least an output (for NAME_NEW, no inputs are expected).  */
@@ -449,10 +502,11 @@ CheckNameTransaction (const CTransaction& tx, unsigned nHeight,
         return state.Invalid (error ("%s: non-Namecoin tx %s at height %u"
                                      " has name outputs",
                                      __func__, txid, nHeight));
-
+      LogPrintf ("CheckNameTransaction Step2\n");
       return true;
     }
 
+  LogPrintf ("CheckNameTransaction Step3\n");
   assert (tx.IsNamecoin ());
   if (nameOut == -1)
     return state.Invalid (error ("%s: Namecoin tx %s has no name outputs",
@@ -479,19 +533,19 @@ CheckNameTransaction (const CTransaction& tx, unsigned nHeight,
       return true;
     }
 
+  LogPrintf ("CheckNameTransaction Step4\n");
   /* Now that we have ruled out NAME_NEW, check that we have a previous
      name input that is being updated.  */
 
-  assert (nameOpOut.isAnyUpdate ());
-  if (nameIn == -1)
-    return state.Invalid (error ("CheckNameTransaction: update without"
-                                 " previous name input"));
+
   const valtype& name = nameOpOut.getOpName ();
 
   if (name.size () > MAX_NAME_LENGTH)
     return state.Invalid (error ("CheckNameTransaction: name too long"));
   if (nameOpOut.getOpValue ().size () > MAX_VALUE_LENGTH)
     return state.Invalid (error ("CheckNameTransaction: value too long"));
+  if (nameIn == -1 && nameOpOut.isAnyUpdate ())
+	return state.Invalid (error ("CheckNameTransaction: update without previous name input"));
 
   /* Process NAME_UPDATE next.  */
 
@@ -527,40 +581,42 @@ CheckNameTransaction (const CTransaction& tx, unsigned nHeight,
     }
 
   /* Finally, NAME_FIRSTUPDATE.  */
-
-  assert (nameOpOut.getNameOp () == OP_NAME_FIRSTUPDATE);
-  if (nameOpIn.getNameOp () != OP_NAME_NEW)
-    return state.Invalid (error ("CheckNameTransaction: NAME_FIRSTUPDATE"
-                                 " with non-NAME_NEW prev tx"));
-
-  /* Maturity of NAME_NEW is checked only if we're not adding
-     to the mempool.  */
-  if (!fMempool)
+  if (nameOpOut.getNameOp () == OP_NAME_FIRSTUPDATE)
     {
-      assert (static_cast<unsigned> (coinIn.nHeight) != MEMPOOL_HEIGHT);
-      if (coinIn.nHeight + MIN_FIRSTUPDATE_DEPTH > nHeight)
-        return state.Invalid (error ("CheckNameTransaction: NAME_NEW"
-                                     " is not mature for FIRST_UPDATE"));
+	  if (nameOpIn.getNameOp () != OP_NAME_NEW)
+	    //  return state.Invalid (error ("CheckNameTransaction: NAME_FIRSTUPDATE"
+	                    //               " with non-NAME_NEW prev tx"));
+	  /* Maturity of NAME_NEW is checked only if we're not adding
+		 to the mempool.  */
+	  if (!fMempool)
+		{
+		  assert (static_cast<unsigned> (coinIn.nHeight) != MEMPOOL_HEIGHT);
+		  if (coinIn.nHeight + MIN_FIRSTUPDATE_DEPTH > nHeight)
+			return state.Invalid (error ("CheckNameTransaction: NAME_NEW"
+										 " is not mature for FIRST_UPDATE"));
+		}
+
+	  if (nameOpOut.getOpRand ().size () > 20)
+		return state.Invalid (error ("CheckNameTransaction: NAME_FIRSTUPDATE"
+									 " rand too large, %d bytes",
+									 nameOpOut.getOpRand ().size ()));
+
+	  {
+		valtype toHash(nameOpOut.getOpRand ());
+		toHash.insert (toHash.end (), name.begin (), name.end ());
+		const uint160 hash = Hash160 (toHash);
+		if (hash != uint160 (nameOpIn.getOpHash ()))
+		  return state.Invalid (error ("CheckNameTransaction: NAME_FIRSTUPDATE"
+									   " hash mismatch"));
+	  }
+
+	  CNameData oldName;
+	  if (view.GetName (name, oldName) && !oldName.isExpired (nHeight))
+		return state.Invalid (error ("CheckNameTransaction: NAME_FIRSTUPDATE"
+									 " on an unexpired name"));
     }
 
-  if (nameOpOut.getOpRand ().size () > 20)
-    return state.Invalid (error ("CheckNameTransaction: NAME_FIRSTUPDATE"
-                                 " rand too large, %d bytes",
-                                 nameOpOut.getOpRand ().size ()));
-
-  {
-    valtype toHash(nameOpOut.getOpRand ());
-    toHash.insert (toHash.end (), name.begin (), name.end ());
-    const uint160 hash = Hash160 (toHash);
-    if (hash != uint160 (nameOpIn.getOpHash ()))
-      return state.Invalid (error ("CheckNameTransaction: NAME_FIRSTUPDATE"
-                                   " hash mismatch"));
-  }
-
-  CNameData oldName;
-  if (view.GetName (name, oldName) && !oldName.isExpired (nHeight))
-    return state.Invalid (error ("CheckNameTransaction: NAME_FIRSTUPDATE"
-                                 " on an unexpired name"));
+  	  //TODO any checkou on OP_NAME_DOI
 
   /* We don't have to specifically check that miners don't create blocks with
      conflicting NAME_FIRSTUPDATE's, since the mining's CCoinsViewCache
@@ -605,7 +661,7 @@ ApplyNameTransaction (const CTransaction& tx, unsigned nHeight,
   for (unsigned i = 0; i < tx.vout.size (); ++i)
     {
       const CNameScript op(tx.vout[i].scriptPubKey);
-      if (op.isNameOp () && op.isAnyUpdate ())
+      if (op.isNameOp () && (op.isAnyUpdate () || op.isDoiRegistration ()))
         {
           const valtype& name = op.getOpName ();
           LogPrint (BCLog::NAMES, "Updating name at height %d: %s\n",
@@ -690,8 +746,7 @@ ExpireNames (unsigned nHeight, CCoinsViewCache& view, CBlockUndo& undo,
         return error ("%s : name coin for '%s' is not available",
                       __func__, nameStr.c_str ());
       const CNameScript nameOp(coin.out.scriptPubKey);
-      if (!nameOp.isNameOp () || !nameOp.isAnyUpdate ()
-          || nameOp.getOpName () != *i)
+      if (!nameOp.isNameOp () || !nameOp.isAnyUpdate () || nameOp.getOpName () != *i)
         return error ("%s : name coin to be expired is wrong script", __func__);
 
       if (!view.SpendCoin (out, &coin))

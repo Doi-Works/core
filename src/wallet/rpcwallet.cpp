@@ -3572,6 +3572,7 @@ extern UniValue rescanblockchain(const JSONRPCRequest& request);
 
 extern UniValue name_list(const JSONRPCRequest& request); // in rpcnames.cpp
 extern UniValue name_new(const JSONRPCRequest& request);
+extern UniValue name_doi(const JSONRPCRequest& request);
 extern UniValue name_firstupdate(const JSONRPCRequest& request);
 extern UniValue name_update(const JSONRPCRequest& request);
 extern UniValue sendtoname(const JSONRPCRequest& request);
@@ -3639,6 +3640,7 @@ static const CRPCCommand commands[] =
     { "namecoin",           "name_new",                 &name_new,                 {"name"} },
     { "namecoin",           "name_firstupdate",         &name_firstupdate,         {"name","rand","tx","value","toaddress","allow_active"} },
     { "namecoin",           "name_update",              &name_update,              {"name","value","toaddress"} },
+	{ "namecoin",           "name_doi",                 &name_doi,                 {"name","value","toaddress"} },
     { "namecoin",           "sendtoname",               &sendtoname,               {"name","amount","comment","comment_to","subtractfeefromamount"} },
 };
 
