@@ -81,7 +81,8 @@ CScript
 CNameScript::buildNameDOI (const CScript& addr, const valtype& name, const valtype& value)
 {
   CScript prefix;
-  prefix << OP_NAME_DOI << name << value << OP_2DROP << OP_2DROP;
+  prefix << OP_NAME_DOI << name << value
+		  << OP_2DROP << OP_2DROP;
 
   return prefix + addr;
 }

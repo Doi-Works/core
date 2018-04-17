@@ -248,8 +248,6 @@ UniValue
 name_doi (const JSONRPCRequest& request)
 {
 
-  printf("test debug name_doi 0");
-
   CWallet* const pwallet = GetWalletForJSONRPCRequest(request);
   if (!EnsureWalletIsAvailable (pwallet, request.fHelp))
     return NullUniValue;
@@ -292,7 +290,6 @@ name_doi (const JSONRPCRequest& request)
                            "there is already a registration for this doi name");
    }
 
-   LogPrintf ("name_doi step 1");
  /*  CNameData oldData;
    {
      LOCK (cs_main);
