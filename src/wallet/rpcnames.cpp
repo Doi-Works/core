@@ -265,7 +265,7 @@ name_doi (const JSONRPCRequest& request)
         "\"txid\"             (string) the name_doi's txid\n"
         "\nExamples:\n"
         + HelpExampleCli ("name_doi", "\"myname\", \"new-value\"")
-        + HelpExampleCli ("name_upname_doidate", "\"myname\", \"new-value\", \"NEX4nME5p3iyNK3gFh4FUeUriHXxEFemo9\"")
+        + HelpExampleCli ("name_doi", "\"myname\", \"new-value\", \"NEX4nME5p3iyNK3gFh4FUeUriHXxEFemo9\"")
         + HelpExampleRpc ("name_doi", "\"myname\", \"new-value\"")
       );
 
@@ -309,8 +309,10 @@ name_doi (const JSONRPCRequest& request)
    assert (ok);
    bool usedKey = false;
 
+   CCoinControl coinControl;
+   CWalletTx wtx;
 
- CScript addrName;
+   CScript addrName;
    if (request.params.size () == 3)
      {
        keyName.ReturnKey ();
@@ -319,6 +321,11 @@ name_doi (const JSONRPCRequest& request)
          throw JSONRPCError (RPC_INVALID_ADDRESS_OR_KEY, "invalid address");
 
        addrName = GetScriptForDestination (dest);
+
+       CScript scriptPubKey = GetScriptForDestination(addrName);
+
+       SendMoneyToScript(pwallet, scriptPubKey, nullptr,
+    		   NAME_LOCKED_AMOUNT, false, wtx, coinControl);
      }
    else
      {
@@ -328,10 +335,10 @@ name_doi (const JSONRPCRequest& request)
 
    const CScript nameScript = CNameScript::buildNameDOI (addrName, name, value);
 
-   CCoinControl coinControl;
-   CWalletTx wtx;
+
    SendMoneyToScript (pwallet, nameScript, nullptr,
                       NAME_LOCKED_AMOUNT, false, wtx, coinControl);
+
 
   if (usedKey)
      keyName.KeepKey ();
