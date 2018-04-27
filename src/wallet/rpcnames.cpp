@@ -322,9 +322,7 @@ name_doi (const JSONRPCRequest& request)
 
        addrName = GetScriptForDestination (dest);
 
-       CScript scriptPubKey = GetScriptForDestination(addrName);
-
-       SendMoneyToScript(pwallet, scriptPubKey, nullptr,
+       SendMoneyToScript(pwallet, addrName, nullptr,
     		   NAME_LOCKED_AMOUNT, false, wtx, coinControl);
      }
    else
