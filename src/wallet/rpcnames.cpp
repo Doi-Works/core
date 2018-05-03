@@ -334,9 +334,12 @@ name_doi (const JSONRPCRequest& request)
    const CScript nameScript = CNameScript::buildNameDOI (addrName, name, value);
 
 
-   SendMoneyToScript (pwallet, nameScript, nullptr,
+   /*
+    * This would be an interesting place to send the transaction fee to Bob (node/dApp in confirmation mode)
+    *
+    * SendMoneyToScript (pwallet, nameScript, nullptr,
                       NAME_LOCKED_AMOUNT, false, wtx, coinControl);
-
+	*/
 
   if (usedKey)
      keyName.KeepKey ();
