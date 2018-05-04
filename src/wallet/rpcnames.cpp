@@ -322,8 +322,13 @@ name_doi (const JSONRPCRequest& request)
 
        addrName = GetScriptForDestination (dest);
 
+       /*
+        * This would be an interesting place to send the transaction fee to Bob (node/dApp in confirmation mode)
+        *
        SendMoneyToScript(pwallet, addrName, nullptr,
     		   NAME_LOCKED_AMOUNT, false, wtx, coinControl);
+        */
+
      }
    else
      {
@@ -331,15 +336,9 @@ name_doi (const JSONRPCRequest& request)
        addrName = GetScriptForDestination (pubKey.GetID ());
      }
 
-   const CScript nameScript = CNameScript::buildNameDOI (addrName, name, value);
-
-
-   /*
-    * This would be an interesting place to send the transaction fee to Bob (node/dApp in confirmation mode)
-    *
-    * SendMoneyToScript (pwallet, nameScript, nullptr,
+   	 const CScript nameScript = CNameScript::buildNameDOI (addrName, name, value);
+ 	 SendMoneyToScript (pwallet, nameScript, nullptr,
                       NAME_LOCKED_AMOUNT, false, wtx, coinControl);
-	*/
 
   if (usedKey)
      keyName.KeepKey ();
