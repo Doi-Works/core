@@ -137,7 +137,7 @@ public:
         consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000000002b91bda2ddf118");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x00006b0bc91e80054369e07b330c243bf32f4b97f66da976756265b81a9b5828"); //250000
+        consensus.defaultAssumeValid = uint256S("000006fdd8b4d786fd9bdde5bae9486c464e3aa4336c5f8415dfdd3fc1679134"); //250000
 
         consensus.nAuxpowChainId = 0x0002;
         consensus.nAuxpowStartHeight = 1;
@@ -364,7 +364,7 @@ public:
         consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000005cfea5e7ee2dd9d9");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0xe0a05455d89a54bb7c1b5bb785d6b1b7c5bda42ed4ce8dc19d68652ba8835954"); //130000
+        consensus.defaultAssumeValid = uint256S("0000cd7572b3ecc78b7cddf49eda95e718d4df77c236ca2e375125e111e7e9c4"); //130000
 
         consensus.nAuxpowStartHeight = 0;
         consensus.nAuxpowChainId = 0x0001;
@@ -381,10 +381,7 @@ public:
         nPruneAfterHeight = 1000;
 
         genesis = CreateTestnetGenesisBlock(1522756358, 6658, 0x1f08ffff, 1, 50 * COIN);
-
-                consensus.hashGenesisBlock = uint256S("0x");
-
-                      // calculate Genesis Block
+/*                      // calculate Genesis Block
                       // Reset genesis
             consensus.hashGenesisBlock = uint256S("0x");
                       std::cout << std::string("Begin calculating Testnet Genesis Block:\n");
@@ -422,7 +419,7 @@ public:
                       }
                       std::cout << std::string("Finished calculating Testnet Genesis Block:\n");
 
-
+*/
 
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock == uint256S("0000cd7572b3ecc78b7cddf49eda95e718d4df77c236ca2e375125e111e7e9c4"));
