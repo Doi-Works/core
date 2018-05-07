@@ -382,7 +382,7 @@ public:
 
         genesis = CreateTestnetGenesisBlock(1522756358, 6658, 0x1f08ffff, 1, 50 * COIN);
 
-        /*        consensus.hashGenesisBlock = uint256S("0x");
+                consensus.hashGenesisBlock = uint256S("0x");
 
                       // calculate Genesis Block
                       // Reset genesis
@@ -421,7 +421,7 @@ public:
                           // Mainnet --- nonce: 296277 time: 1390095618 hash: 000000bdd771b14e5a031806292305e563956ce2584278de414d9965f6ab54b0
                       }
                       std::cout << std::string("Finished calculating Testnet Genesis Block:\n");
-*/
+
 
 
         consensus.hashGenesisBlock = genesis.GetHash();
@@ -457,8 +457,8 @@ public:
 
         chainTxData = ChainTxData{
         	1522756358,
-            173446,
-            0.0027
+            0,
+            1
         };
 
         assert(mapHistoricBugs.empty());
