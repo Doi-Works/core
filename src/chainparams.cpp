@@ -369,7 +369,7 @@ public:
         consensus.nAuxpowStartHeight = 0;
         consensus.nAuxpowChainId = 0x0001;
         consensus.fStrictChainId = false;
-        consensus.nLegacyBlocksBefore = -1;
+        consensus.nLegacyBlocksBefore = 1;
 
         consensus.rules.reset(new Consensus::TestNetConsensus());
 
