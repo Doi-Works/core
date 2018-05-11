@@ -366,8 +366,8 @@ public:
         // By default assume that the signatures in ancestors of this block are valid.
         consensus.defaultAssumeValid = uint256S("0000cd7572b3ecc78b7cddf49eda95e718d4df77c236ca2e375125e111e7e9c4"); //130000
 
-        consensus.nAuxpowStartHeight = 0;
-        consensus.nAuxpowChainId = 0x0001;
+        consensus.nAuxpowChainId = 0x0003;
+        consensus.nAuxpowStartHeight = 1;
         consensus.fStrictChainId = false;
         consensus.nLegacyBlocksBefore = 1;
 
