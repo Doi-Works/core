@@ -321,14 +321,6 @@ name_doi (const JSONRPCRequest& request)
          throw JSONRPCError (RPC_INVALID_ADDRESS_OR_KEY, "invalid address");
 
        addrName = GetScriptForDestination (dest);
-
-       /*
-        * This would be an interesting place to send the transaction fee to Bob (node/dApp in confirmation mode)
-        *
-       SendMoneyToScript(pwallet, addrName, nullptr,
-    		   NAME_LOCKED_AMOUNT, false, wtx, coinControl);
-        */
-
      }
    else
      {
@@ -336,17 +328,16 @@ name_doi (const JSONRPCRequest& request)
        addrName = GetScriptForDestination (pubKey.GetID ());
      }
 
-   	 const CScript nameScript = CNameScript::buildNameDOI (addrName, name, value);
- 	 SendMoneyToScript (pwallet, nameScript, nullptr,
+     const CScript nameScript = CNameScript::buildNameDOI (addrName, name, value);
+     SendMoneyToScript (pwallet, nameScript, nullptr,
                       NAME_LOCKED_AMOUNT, false, wtx, coinControl);
 
-  if (usedKey)
-     keyName.KeepKey ();
+     if (usedKey)
+      keyName.KeepKey ();
 
    const std::string txid = wtx.GetHash ().GetHex ();
    LogPrintf ("name_doi: name=%s, value=%s, tx=%s\n",
               nameStr.c_str (), valueStr.c_str (), txid.c_str ());
-
 
    return wtx.GetHash ().GetHex ();
 }
