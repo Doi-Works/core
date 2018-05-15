@@ -437,7 +437,7 @@ CheckNameTransaction (const CTransaction& tx, unsigned nHeight,
                       const CCoinsView& view,
                       CValidationState& state, unsigned flags)
 {
-
+	LogPrintf ("CheckNameTransaction Step 0\n");
   const std::string strTxid = tx.GetHash ().GetHex ();
   const char* txid = strTxid.c_str ();
   const bool fMempool = (flags & SCRIPT_VERIFY_NAMES_MEMPOOL);
@@ -450,7 +450,7 @@ CheckNameTransaction (const CTransaction& tx, unsigned nHeight,
   /* As a first step, try to locate inputs and outputs of the transaction
      that are name scripts.  At most one input and output should be
      a name operation.  */
-
+  LogPrintf ("CheckNameTransaction Step 0.1\n");
   int nameIn = -1;
   CNameScript nameOpIn;
   Coin coinIn;
@@ -472,7 +472,7 @@ CheckNameTransaction (const CTransaction& tx, unsigned nHeight,
           coinIn = coin;
         }
     }
-
+	LogPrintf ("CheckNameTransaction Step 0.2\n");
   int nameOut = -1;
   CNameScript nameOpOut;
   for (unsigned i = 0; i < tx.vout.size (); ++i)
