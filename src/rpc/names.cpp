@@ -561,11 +561,11 @@ namerawtransaction (const JSONRPCRequest& request)
         "  \"hex\": xxx,        (string) Hex string of the updated transaction\n"
         "  \"rand\": xxx,       (string) If this is a name_new, the nonce used to create it\n"
         "}\n"
-        + HelpExampleCli ("namerawtransaction", R"("raw tx hex" 1 "{\"op\":\"name_new\",\"name\":\"my-name\")")
-        + HelpExampleCli ("namerawtransaction", R"("raw tx hex" 1 "{\"op\":\"name_firstupdate\",\"name\":\"my-name\",\"value\":\"new value\",\"rand\":\"00112233\")")
-        + HelpExampleCli ("namerawtransaction", R"("raw tx hex" 1 "{\"op\":\"name_update\",\"name\":\"my-name\",\"value\":\"new value\")")
-		+ HelpExampleCli ("namerawtransaction", R"("raw tx hex" 1 "{\"op\":\"name_doi\",\"name\":\"my-name\",\"value\":\"new value\")")
-        + HelpExampleRpc ("namerawtransaction", R"("raw tx hex", 1, "{\"op\":\"name_update\",\"name\":\"my-name\",\"value\":\"new value\")")
+        + HelpExampleCli ("namerawtransaction", R"("raw tx hex" 1 "{\"op\":\"name_new\",\"name\":\"my-name\"})")
+        + HelpExampleCli ("namerawtransaction", R"("raw tx hex" 1 "{\"op\":\"name_firstupdate\",\"name\":\"my-name\",\"value\":\"new value\",\"rand\":\"00112233\"})")
+        + HelpExampleCli ("namerawtransaction", R"("raw tx hex" 1 "{\"op\":\"name_update\",\"name\":\"my-name\",\"value\":\"new value\"})")
+		+ HelpExampleCli ("namerawtransaction", R"("raw tx hex" 1 "{\"op\":\"name_doi\",\"name\":\"my-name\",\"value\":\"new value\"})")
+        + HelpExampleRpc ("namerawtransaction", R"("raw tx hex", 1, "{\"op\":\"name_update\",\"name\":\"my-name\",\"value\":\"new value\"})")
       );
 
   RPCTypeCheck (request.params,
