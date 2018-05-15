@@ -747,7 +747,7 @@ ExpireNames (unsigned nHeight, CCoinsViewCache& view, CBlockUndo& undo,
         return error ("%s : name coin for '%s' is not available",
                       __func__, nameStr.c_str ());
       const CNameScript nameOp(coin.out.scriptPubKey);
-      if (!nameOp.isNameOp ()  (!nameOp.isAnyUpdate () && !nameOp.isDoiRegistration()) || nameOp.getOpName () != *i)
+      if (!nameOp.isNameOp () ||  (!nameOp.isAnyUpdate () && !nameOp.isDoiRegistration()) || nameOp.getOpName () != *i)
         return error ("%s : name coin to be expired is wrong script", __func__);
 
       if (!view.SpendCoin (out, &coin))
