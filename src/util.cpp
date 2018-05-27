@@ -82,8 +82,8 @@
 // Application startup time (used for uptime calculation)
 const int64_t nStartupTime = GetTime();
 
-const char * const BITCOIN_CONF_FILENAME = "namecoin.conf";
-const char * const BITCOIN_PID_FILENAME = "namecoind.pid";
+const char * const BITCOIN_CONF_FILENAME = "doichain.conf";
+const char * const BITCOIN_PID_FILENAME = "doichaind.pid";
 const char * const DEFAULT_DEBUGLOGFILE = "debug.log";
 
 ArgsManager gArgs;
@@ -536,7 +536,7 @@ static std::string FormatException(const std::exception* pex, const char* pszThr
     char pszModule[MAX_PATH] = "";
     GetModuleFileNameA(nullptr, pszModule, sizeof(pszModule));
 #else
-    const char* pszModule = "namecoin";
+    const char* pszModule = "doichain";
 #endif
     if (pex)
         return strprintf(
@@ -555,13 +555,13 @@ void PrintExceptionContinue(const std::exception* pex, const char* pszThread)
 
 fs::path GetDefaultDataDir()
 {
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Namecoin
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Namecoin
-    // Mac: ~/Library/Application Support/Namecoin
-    // Unix: ~/.namecoin
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\doichain
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\doichain
+    // Mac: ~/Library/Application Support/doichain
+    // Unix: ~/.doichain
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Namecoin";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "doichain";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -571,10 +571,10 @@ fs::path GetDefaultDataDir()
         pathRet = fs::path(pszHome);
 #ifdef MAC_OSX
     // Mac
-    return pathRet / "Library/Application Support/Namecoin";
+    return pathRet / "Library/Application Support/doichain";
 #else
     // Unix
-    return pathRet / ".namecoin";
+    return pathRet / ".doichain";
 #endif
 #endif
 }

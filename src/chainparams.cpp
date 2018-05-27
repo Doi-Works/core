@@ -65,7 +65,7 @@ static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits
 }
 
 /**
- * Build genesis block for testnet.  In Namecoin, it has a changed timestamp
+ * Build genesis block for testnet.  In doichain, it has a changed timestamp
  * and output script (it uses Bitcoin's).
  */
 static CBlock CreateTestnetGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
@@ -130,7 +130,7 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 0; // Not yet enabled
 
         // The best chain should have at least this much work.
-        // The value is the chain work of the Namecoin mainnet chain at height
+        // The value is the chain work of the doichain mainnet chain at height
         // 312,290, with best block hash:
         // c98df864dce972b1948314e98e96c8a86d2c0aaa80b421fe651e203f6bab9010
         //consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000ba50a60f8b56c7fe0");
@@ -270,21 +270,21 @@ hashMerkleRoot: 234651063df5f8b01ecc2fc3a134fa1cb9dc9da9cce0149049483ba1b1469dfb
             1 // * estimated number of transactions per second after checkpoint
         };
 
-        /* See also doc/NamecoinBugs.txt for more explanation on the
+        /* See also doc/doichainBugs.txt for more explanation on the
            historical bugs added below.  */
 
-        /* These transactions have name outputs but a non-Namecoin tx version.
+        /* These transactions have name outputs but a non-doichain tx version.
            They contain NAME_NEWs, which are fine, and also NAME_FIRSTUPDATE.
-           The latter are not interpreted by namecoind, thus also ignore
+           The latter are not interpreted by doichaind, thus also ignore
            them for us here.  */
 //        addBug(98423, "bff3ed6873e5698b97bf0c28c29302b59588590b747787c7d1ef32decdabe0d1", BUG_FULLY_IGNORE);
 //        addBug(98424, "e9b211007e5cac471769212ca0f47bb066b81966a8e541d44acf0f8a1bd24976", BUG_FULLY_IGNORE);
 //        addBug(98425, "8aa2b0fc7d1033de28e0192526765a72e9df0c635f7305bdc57cb451ed01a4ca", BUG_FULLY_IGNORE);
 
-        /* These are non-Namecoin tx that contain just NAME_NEWs.  Those were
+        /* These are non-doichain tx that contain just NAME_NEWs.  Those were
            handled with a special rule previously, but now they are fully
            disallowed and we handle the few exceptions here.  It is fine to
-           "ignore" them, as their outputs need no special Namecoin handling
+           "ignore" them, as their outputs need no special doichain handling
            before they are reused in a NAME_FIRSTUPDATE.  */
 //        addBug(98318, "0ae5e958ff05ad8e273222656d98d076097def6d36f781a627c584b859f4727b", BUG_FULLY_IGNORE);
 //        addBug(98321, "aca8ce46da1bbb9bb8e563880efcd9d6dd18342c446d6f0e3d4b964a990d1c27", BUG_FULLY_IGNORE);
@@ -358,7 +358,7 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 0; // Not yet enabled
 
         // The best chain should have at least this much work.
-        // The value is the chain work of the Namecoin testnet chain at height
+        // The value is the chain work of the doichain testnet chain at height
         // 158,460, with best block hash:
         // cebebb916288ed48cd8a359576d900c550203883bf69fc8d5ed92c5d778a1e32
         consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000001c71");
@@ -428,7 +428,7 @@ public:
         vFixedSeeds.clear();
         vSeeds.clear();
         // nodes with support for servicebits filtering should be at the top
-       // vSeeds.emplace_back("dnsseed.test.namecoin.webbtc.com", false);
+       // vSeeds.emplace_back("dnsseed.test.doichain.webbtc.com", false);
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);

@@ -1,14 +1,14 @@
 DoiChain Core integration/staging tree
 =====================================
 
-[![Build Status](https://travis-ci.org/namecoin/namecoin-core.svg?branch=master)](https://travis-ci.org/namecoin/namecoin-core)
+[![Build Status](https://travis-ci.org/doichain/doichain-core.svg?branch=master)](https://travis-ci.org/doichain/doichain-core)
 
 https://doichain.org
 
 What is DoiChain? 
 ----------------
 
-DoiChain is a decentralized open source email double-opt-in registration system based on the Namecoin and Bitcoin cryptocurrency.
+DoiChain is a decentralized open source email double-opt-in registration system based on the doichain and Bitcoin cryptocurrency.
 
 What does it do?
 ----------------
@@ -17,7 +17,7 @@ What does it do?
 * Test 
 * Transact doi, the digital currency (DOI).
 
-Namecoin was the first fork of Bitcoin and still is one of the most innovative altcoins. It was first to implement merged mining and a decentralized DNS. Namecoin squares Zooko's Triangle!
+doichain was the first fork of Bitcoin and still is one of the most innovative altcoins. It was first to implement merged mining and a decentralized DNS. doichain squares Zooko's Triangle!
 
 What can it be used for?
 ----------------
@@ -29,29 +29,29 @@ What can it be used for?
 * File signatures, Voting, bonds/stocks,/shares, web of trust, escrow and notary services (to be implemented).
 
 ~~For more information, as well as an immediately useable, binary version of~~
-~~the Namecoin Core software, see https://namecoin.org/?p=download.~~
+~~the doichain Core software, see https://doichain.org/?p=download.~~
 Public binary downloads are not yet posted.
 
 License
 -------
 
-Namecoin Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
+doichain Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
 information or see https://opensource.org/licenses/MIT.
 
 Development Process
 -------------------
 
 The `master` branch is regularly built and tested, but is not guaranteed to be
-completely stable. [Tags](https://github.com/namecoin/namecoin-core/tags) are created
-regularly to indicate new official, stable release versions of Namecoin Core.
+completely stable. [Tags](https://github.com/doichain/doichain-core/tags) are created
+regularly to indicate new official, stable release versions of doichain Core.
 
 The contribution workflow is described in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-The developer [forum](https://forum.namecoin.info/viewforum.php?f=4)
+The developer [forum](https://forum.doichain.info/viewforum.php?f=4)
 should be used to discuss complicated or controversial changes before working
 on a patch set.
 
-Developer IRC can be found on Freenode at #namecoin-dev.
+Developer IRC can be found on Freenode at #doichain-dev.
 
 Testing
 -------
@@ -84,7 +84,7 @@ not straightforward.
 Translations
 ------------
 
-**Translation workflow is not yet set up for Namecoin Core.  For strings which are common to Bitcoin Core, see below.**
+**Translation workflow is not yet set up for doichain Core.  For strings which are common to Bitcoin Core, see below.**
 
 Changes to translations as well as new translations can be submitted to
 [Bitcoin Core's Transifex page](https://www.transifex.com/projects/p/bitcoin/).

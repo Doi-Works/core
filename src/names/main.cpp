@@ -170,7 +170,7 @@ CNameMemPool::removeConflicts (const CTransaction& tx)
 {
   AssertLockHeld (pool.cs);
 
-  if (!tx.IsNamecoin ())
+  if (!tx.Isdoichain ())
     return;
 
   for (const auto& txout : tx.vout)
@@ -336,7 +336,7 @@ CNameMemPool::checkTx (const CTransaction& tx) const
 {
   AssertLockHeld (pool.cs);
 
-  if (!tx.IsNamecoin ())
+  if (!tx.Isdoichain ())
     return true;
 
   /* In principle, multiple name_updates could be performed within the
@@ -489,17 +489,17 @@ CheckNameTransaction (const CTransaction& tx, unsigned nHeight,
     }
 
   LogPrintf ("CheckNameTransaction Step1\n");
-  /* Check that no name inputs/outputs are present for a non-Namecoin tx.
-     If that's the case, all is fine.  For a Namecoin tx instead, there
+  /* Check that no name inputs/outputs are present for a non-doichain tx.
+     If that's the case, all is fine.  For a doichain tx instead, there
      should be at least an output (for NAME_NEW, no inputs are expected).  */
 
-  if (!tx.IsNamecoin ())
+  if (!tx.Isdoichain ())
     {
       if (nameIn != -1)
-        return state.Invalid (error ("%s: non-Namecoin tx %s has name inputs",
+        return state.Invalid (error ("%s: non-doichain tx %s has name inputs",
                                      __func__, txid));
       if (nameOut != -1)
-        return state.Invalid (error ("%s: non-Namecoin tx %s at height %u"
+        return state.Invalid (error ("%s: non-doichain tx %s at height %u"
                                      " has name outputs",
                                      __func__, txid, nHeight));
       LogPrintf ("CheckNameTransaction Step2\n");
@@ -507,14 +507,14 @@ CheckNameTransaction (const CTransaction& tx, unsigned nHeight,
     }
 
   LogPrintf ("CheckNameTransaction Step3\n");
-  assert (tx.IsNamecoin ());
+  assert (tx.Isdoichain ());
   if (nameOut == -1)
-    return state.Invalid (error ("%s: Namecoin tx %s has no name outputs",
+    return state.Invalid (error ("%s: doichain tx %s has no name outputs",
                                  __func__, txid));
 
   /* Reject "greedy names".  */
   const Consensus::Params& params = Params ().GetConsensus ();
-  if (tx.vout[nameOut].nValue < params.rules->MinNameCoinAmount(nHeight))
+  if (tx.vout[nameOut].nValue < params.rules->MindoichainAmount(nHeight))
     return state.Invalid (error ("%s: greedy name", __func__));
 
   /* Handle NAME_NEW now, since this is easy and different from the other
@@ -652,8 +652,8 @@ ApplyNameTransaction (const CTransaction& tx, unsigned nHeight,
 
   /* This check must be done *after* the historic bug fixing above!  Some
      of the names that must be handled above are actually produced by
-     transactions *not* marked as Namecoin tx.  */
-  if (!tx.IsNamecoin ())
+     transactions *not* marked as doichain tx.  */
+  if (!tx.Isdoichain ())
     return;
 
   /* Changes are encoded in the outputs.  We don't have to do any checks,
@@ -744,14 +744,14 @@ ExpireNames (unsigned nHeight, CCoinsViewCache& view, CBlockUndo& undo,
       const COutPoint& out = data.getUpdateOutpoint ();
       Coin coin;
       if (!view.GetCoin(out, coin))
-        return error ("%s : name coin for '%s' is not available",
+        return error ("%s : doichain for '%s' is not available",
                       __func__, nameStr.c_str ());
       const CNameScript nameOp(coin.out.scriptPubKey);
       if (!nameOp.isNameOp () ||  (!nameOp.isAnyUpdate () && !nameOp.isDoiRegistration()) || nameOp.getOpName () != *i)
-        return error ("%s : name coin to be expired is wrong script", __func__);
+        return error ("%s : doichain to be expired is wrong script", __func__);
 
       if (!view.SpendCoin (out, &coin))
-        return error ("%s : spending name coin failed", __func__);
+        return error ("%s : spending doichain failed", __func__);
       undo.vexpired.push_back (coin);
     }
 
@@ -792,7 +792,7 @@ UnexpireNames (unsigned nHeight, CBlockUndo& undo, CCoinsViewCache& view,
 
       if (ApplyTxInUndo (std::move(*i), view,
                          data.getUpdateOutpoint ()) != DISCONNECT_OK)
-        return error ("%s : failed to undo name coin spending", __func__);
+        return error ("%s : failed to undo doichain spending", __func__);
     }
 
   return true;

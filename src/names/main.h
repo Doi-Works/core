@@ -279,9 +279,9 @@ public:
 /* ************************************************************************** */
 
 /**
- * Check a transaction according to the additional Namecoin rules.  This
+ * Check a transaction according to the additional doichain rules.  This
  * ensures that all name operations (if any) are valid and that it has
- * name operations iff it is marked as Namecoin tx by its version.
+ * name operations iff it is marked as doichain tx by its version.
  * @param tx The transaction to check.
  * @param nHeight Height at which the tx will be.
  * @param view The current chain state.
@@ -316,7 +316,7 @@ bool ExpireNames (unsigned nHeight, CCoinsViewCache& view, CBlockUndo& undo,
                   std::set<valtype>& names);
 
 /**
- * Undo name coin expirations.  This also does some checks verifying
+ * Undo doichain expirations.  This also does some checks verifying
  * that all is fine.
  * @param nHeight The height at which the names were expired.
  * @param undo The block undo object to use.

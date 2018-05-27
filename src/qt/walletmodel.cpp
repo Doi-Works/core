@@ -29,7 +29,7 @@
 #include <wallet/wallet.h>
 #include <wallet/walletdb.h> // for BackupWallet
 
-// namecoin API-related includes
+// doichain API-related includes
 #include <names/common.h>
 #include <names/main.h>
 #include <qt/nametablemodel.h>
@@ -935,7 +935,7 @@ std::vector<std::string> WalletModel::sendPendingNameFirstUpdates()
         if (getEncryptionStatus() == Locked)
         {
             if (QMessageBox::Yes != QMessageBox::question(this, tr("Confirm wallet unlock"),
-                  tr("Namecoin Core is about to finalize your name registration for name <b>%1</b>, by sending name_firstupdate. If your wallet is locked, you will be prompted to unlock it. Pressing cancel will delay your name registration by one block, at which point you will be prompted again. Would you like to proceed?").arg(QString::fromStdString(name)),
+                  tr("doichain Core is about to finalize your name registration for name <b>%1</b>, by sending name_firstupdate. If your wallet is locked, you will be prompted to unlock it. Pressing cancel will delay your name registration by one block, at which point you will be prompted again. Would you like to proceed?").arg(QString::fromStdString(name)),
                   QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Cancel))
             {
                 LogPrintf ("User cancelled wallet unlock pre-name_firstupdate. Waiting 1 block.\n");
@@ -957,7 +957,7 @@ std::vector<std::string> WalletModel::sendPendingNameFirstUpdates()
         // if we got an error on name_firstupdate. prompt user for what to do
         if (!completedResult.empty())
         {
-            QString errorMsg = tr("Namecoin Core has encountered an error while attempting to complete your name registration for name <b>%1</b>. The name_firstupdate operation caused the following error to occurr:<br><br>%2<br><br>Would you like to cancel the pending name registration?")
+            QString errorMsg = tr("doichain Core has encountered an error while attempting to complete your name registration for name <b>%1</b>. The name_firstupdate operation caused the following error to occurr:<br><br>%2<br><br>Would you like to cancel the pending name registration?")
                 .arg(QString::fromStdString(name))
                 .arg(QString::fromStdString(completedResult));
             // if they didnt hit yes, move onto next pending op, otherwise

@@ -211,7 +211,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
 bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, unsigned flags, CAmount& txfee)
 {
     if (!CheckNameTransaction (tx, nSpendHeight, inputs, state, flags))
-        return state.Invalid(false, 0, "", "Tx invalid for Namecoin");
+        return state.Invalid(false, 0, "", "Tx invalid for doichain");
 
     // are the actual inputs available?
     if (!inputs.HaveInputs(tx)) {
