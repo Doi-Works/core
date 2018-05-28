@@ -452,10 +452,10 @@ Then when building, override the remote URLs that gbuild would otherwise pull fr
 cd /some/root/path/
 git clone https://github.com/doichain/doichain-detached-sigs.git
 
-NMCPATH=/some/root/path/doichain-core.git
+DOIPATH=/some/root/path/doichain-core.git
 SIGPATH=/some/root/path/doichain-detached-sigs.git
 
-./bin/gbuild --url doichain=${NMCPATH},signature=${SIGPATH} ../doichain-core/contrib/gitian-descriptors/gitian-win-signer.yml
+./bin/gbuild --url doichain=${DOIPATH},signature=${SIGPATH} ../doichain-core/contrib/gitian-descriptors/gitian-win-signer.yml
 ```
 
 Signing externally

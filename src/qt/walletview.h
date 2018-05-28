@@ -87,7 +87,7 @@ public Q_SLOTS:
     /** Show Sign/Verify Message dialog and switch to verify message tab */
     void gotoVerifyMessageTab(QString addr = "");
 
-    /** NMC names mgmt tab */
+    /** DOI names mgmt tab */
     void gotoManageNamesPage();
 
     /** Show incoming transaction notification for new transactions.
