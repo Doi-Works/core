@@ -13,6 +13,12 @@ src/namecoin-tx
 src/test/test_namecoin
 src/test/test_namecoin_fuzzy
 src/qt/test/test_namecoin-qt
+src/doichaind
+src/doichain-cli
+src/doichain-tx
+src/test/test_doichain
+src/test/test_doichain_fuzzy
+src/qt/test/test_doichain-qt
 
 # autoreconf
 Makefile.in
@@ -81,8 +87,10 @@ src/qt/test/moc*.cpp
 Makefile
 bitcoin-qt
 namecoin-qt
+doichain-qt
 Bitcoin-Qt.app
 Namecoin-Qt.app
+Doichain-Qt.app
 background.tiff*
 
 # Unit-tests
@@ -117,6 +125,7 @@ test/cache/*
 
 libbitcoinconsensus.pc
 libnamecoinconsensus.pc
+libdoichainconsensus.pc
 contrib/devtools/split-debug.sh
 
 #eclipse
