@@ -10,7 +10,7 @@
 #include <consensus/params.h>
 #include <primitives/block.h>
 #include <protocol.h>
-#include <arith_uint256.h>
+
 #include <map>
 #include <memory>
 #include <vector>
@@ -71,16 +71,15 @@ public:
         /* Don't apply the name operations and don't put the names into the
            UTXO set.  They are immediately unspendable.  This is used for the
            "d/wav" stealing output (which is not used later on) and also
-           for the NAME_FIRSTUPDATE's that are in non-Namecoin tx.  */
+           for the NAME_FIRSTUPDATE's that are in non-doichain tx.  */
         BUG_FULLY_IGNORE,
     };
 
     const Consensus::Params& GetConsensus() const { return consensus; }
     const CMessageHeader::MessageStartChars& MessageStart() const { return pchMessageStart; }
     int GetDefaultPort() const { return nDefaultPort; }
-    const uint256& HashGenesisBlock() const { return hashGenesisBlock; }
-    const CBlock& GenesisBlock() const { return genesis; }
 
+    const CBlock& GenesisBlock() const { return genesis; }
     /** Default value for -checkmempool and -checkblockindex argument */
     bool DefaultConsistencyChecks() const { return fDefaultConsistencyChecks; }
     /** Default value for -checknamedb argument */
@@ -108,7 +107,7 @@ public:
 
 protected:
     CChainParams() {}
-    uint256 hashGenesisBlock;
+
     Consensus::Params consensus;
     CMessageHeader::MessageStartChars pchMessageStart;
     int nDefaultPort;

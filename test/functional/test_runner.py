@@ -312,8 +312,8 @@ def main():
 def run_tests(test_list, src_dir, build_dir, exeext, tmpdir, jobs=1, enable_coverage=False, args=[], combined_logs_len=0):
     # Warn if bitcoind is already running (unix only)
     try:
-        if subprocess.check_output(["pidof", "namecoind"]) is not None:
-            print("%sWARNING!%s There is already a namecoind process running on this system. Tests may fail unexpectedly due to resource contention!" % (BOLD[1], BOLD[0]))
+        if subprocess.check_output(["pidof", "doichaind"]) is not None:
+            print("%sWARNING!%s There is already a doichaind process running on this system. Tests may fail unexpectedly due to resource contention!" % (BOLD[1], BOLD[0]))
     except (OSError, subprocess.SubprocessError):
         pass
 
@@ -324,8 +324,8 @@ def run_tests(test_list, src_dir, build_dir, exeext, tmpdir, jobs=1, enable_cove
 
     #Set env vars
     if "BITCOIND" not in os.environ:
-        os.environ["BITCOIND"] = build_dir + '/src/namecoind' + exeext
-        os.environ["BITCOINCLI"] = build_dir + '/src/namecoin-cli' + exeext
+        os.environ["BITCOIND"] = build_dir + '/src/doichaind' + exeext
+        os.environ["BITCOINCLI"] = build_dir + '/src/doichain-cli' + exeext
 
     tests_dir = src_dir + '/test/functional/'
 

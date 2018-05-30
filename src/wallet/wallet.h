@@ -110,7 +110,7 @@ enum OutputType : int
     OUTPUT_TYPE_P2SH_SEGWIT,
     OUTPUT_TYPE_BECH32,
 
-    // FIXME: Update once we have segwit on Namecoin.
+    // FIXME: Update once we have segwit on doichain.
     OUTPUT_TYPE_DEFAULT = OUTPUT_TYPE_LEGACY,
 };
 
@@ -911,7 +911,7 @@ public:
 
     /**
      * Find the amount in the given tx input.  This must only be called with
-     * Namecoin inputs as used for CreateTransaction.
+     * doichain inputs as used for CreateTransaction.
      */
     bool FindValueInNameInput (const CTxIn& nameInput,
                                CAmount& value, const CWalletTx*& walletTx,

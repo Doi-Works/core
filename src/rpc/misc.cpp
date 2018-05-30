@@ -153,9 +153,9 @@ UniValue validateaddress(const JSONRPCRequest& request)
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
             "validateaddress \"address\"\n"
-            "\nReturn information about the given namecoin address.\n"
+            "\nReturn information about the given doichain address.\n"
             "\nArguments:\n"
-            "1. \"address\"     (string, required) The namecoin address to validate\n"
+            "1. \"address\"     (string, required) The doichain address to validate\n"
             "\nResult:\n"
             "{\n"
             "  \"isvalid\" : true|false,       (boolean) If the address is valid or not. If not, this is the only property returned.\n"
@@ -333,9 +333,9 @@ UniValue createmultisig(const JSONRPCRequest& request)
 
             "\nArguments:\n"
             "1. nrequired      (numeric, required) The number of required signatures out of the n keys or addresses.\n"
-            "2. \"keys\"       (string, required) A json array of keys which are namecoin addresses or hex-encoded public keys\n"
+            "2. \"keys\"       (string, required) A json array of keys which are doichain addresses or hex-encoded public keys\n"
             "     [\n"
-            "       \"key\"    (string) namecoin address or hex-encoded public key\n"
+            "       \"key\"    (string) doichain address or hex-encoded public key\n"
             "       ,...\n"
             "     ]\n"
 
@@ -372,7 +372,7 @@ UniValue verifymessage(const JSONRPCRequest& request)
             "verifymessage \"address\" \"signature\" \"message\"\n"
             "\nVerify a signed message\n"
             "\nArguments:\n"
-            "1. \"address\"         (string, required) The namecoin address to use for the signature.\n"
+            "1. \"address\"         (string, required) The doichain address to use for the signature.\n"
             "2. \"signature\"       (string, required) The signature provided by the signer in base 64 encoding (see signmessage).\n"
             "3. \"message\"         (string, required) The message that was signed.\n"
             "\nResult:\n"

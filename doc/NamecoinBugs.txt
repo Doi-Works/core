@@ -1,16 +1,16 @@
-Historic Namecoin Bugs
+Historic doichain Bugs
 ======================
 
-The Namecoin blockchain contains some transactions that must be considered
+The doichain blockchain contains some transactions that must be considered
 "buggy".  Nevertheless, it is, of course, important to work around these
 in order to support validating the full blockchain.  This file tries to
 document the historic transactions that need workarounds.
 
-Non-Namecoin Transaction Version
+Non-doichain Transaction Version
 --------------------------------
 
 The original client correctly prevents name outputs from being spent by
-transactions not flagged as "Namecoin transaction" (version 0x7100).  In
+transactions not flagged as "doichain transaction" (version 0x7100).  In
 other words, such transactions must not have name *inputs*.  However,
 it does not check the *outputs*.  Consequently, the blockchain contains
 some transactions with version 1 that, nevertheless, contain name outputs.
@@ -28,7 +28,7 @@ NAME_NEW's are contained in quite a number of transactions.  Transactions
 
 98,424 / e9b211007e5cac471769212ca0f47bb066b81966a8e541d44acf0f8a1bd24976:
   NAME_UPDATE of "test-bitcoin-ruby-4"
-  the tx input is not a name coin at all
+  the tx input is not a doichain at all
 
 98,425 / 8aa2b0fc7d1033de28e0192526765a72e9df0c635f7305bdc57cb451ed01a4ca:
   NAME_FIRSTUPDATE of "test/bitcoin-ruby-5"
@@ -61,7 +61,7 @@ no argument concatenation is done any more.
 libcoin's "Name Stealing"
 -------------------------
 
-Michael Gronager (aka "libcoin") discovered a critical flaw in Namecoin's
+Michael Gronager (aka "libcoin") discovered a critical flaw in doichain's
 validation of name updates in late 2013.  The code accepted *any* name update,
 and did not validate that the input and output names were actually the same.
 In other words, one could register an arbitrary throw-away name and then
@@ -72,19 +72,19 @@ these transactions:
 
 139,872 / 2f034f2499c136a2c5a922ca4be65c1292815c753bbb100a2a26d5ad532c3919:
   update of "d/bitcoin" (the first ever name registered) to the value of
-  "Namecoin died October the 15th 2013, coinslayer"
+  "doichain died October the 15th 2013, coinslayer"
 
 139,936 / c3e76d5384139228221cce60250397d1b87adf7366086bc8d6b5e6eee03c55c7:
   update of "d/wav" (after being challenged by phelix)
 
-The name coin used for both of them was the one of "d/postmortem" as
+The doichain used for both of them was the one of "d/postmortem" as
 registered at 139,868.  After the first of these transactions and until
 "d/postmortem" actually expired, the names as seen in the UTXO set
 and the name database were inconsistent.  The name database still contained
 "d/postmortem", while the UTXO set only contained (briefly) *two* coins
 for "d/bitcoin" and later two for "d/wav".  The rebased client immediately
 spends the duplicate "d/wav" coin, though.  This is fine since the
-name coin expired afterwards and can also not be spent by the old
+doichain expired afterwards and can also not be spent by the old
 client anymore.
 
 This issue was fixed in the hardfork at 150,000.  Before, such transactions
