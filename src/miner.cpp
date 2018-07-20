@@ -27,6 +27,7 @@
 #include <validationinterface.h>
 
 #include <algorithm>
+#include <memory>
 #include <queue>
 #include <utility>
 
@@ -74,9 +75,7 @@ BlockAssembler::BlockAssembler(const CChainParams& params, const Options& option
 static BlockAssembler::Options DefaultOptions(const CChainParams& params)
 {
     // Block resource limits
-    // If neither -blockmaxsize or -blockmaxweight is given, limit to DEFAULT_BLOCK_MAX_*
-    // If only one is given, only restrict the specified resource.
-    // If both are given, restrict both.
+    // If -blockmaxweight is not given, limit to DEFAULT_BLOCK_MAX_WEIGHT
     BlockAssembler::Options options;
     options.nBlockMaxWeight = gArgs.GetArg("-blockmaxweight", DEFAULT_BLOCK_MAX_WEIGHT);
     if (gArgs.IsArgSet("-blockmintxfee")) {
@@ -255,6 +254,7 @@ BlockAssembler::TxAllowedForNamecoin (const CTransaction& tx) const
 
   if (nameOutFound && nameOpOut.getNameOp () == OP_NAME_FIRSTUPDATE)
     {
+      bool nameNewFound = false;
       for (const auto& txIn : tx.vin)
         {
           Coin coin;
@@ -267,8 +267,16 @@ BlockAssembler::TxAllowedForNamecoin (const CTransaction& tx) const
               const int minHeight = coin.nHeight + MIN_FIRSTUPDATE_DEPTH;
               if (minHeight > nHeight)
                 return false;
+              nameNewFound = true;
             }
         }
+
+      /* If the name_new is not only immature but actually unconfirmed, then
+         the GetCoin lookup above fails for it and we never reach the height
+         check.  In this case, nameNewFound is false and we should not yet
+         include the transaction in a mined block.  */
+      if (!nameNewFound)
+        return false;
     }
 
   return true;

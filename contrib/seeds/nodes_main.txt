@@ -1,2 +1,5 @@
 5.9.154.226:8338
 5.9.154.231:8338
+# Known .onion addresses of nodes:
+
+hfddsi35f4tlpayu.onion:8338

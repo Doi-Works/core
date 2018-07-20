@@ -98,9 +98,12 @@ public:
     CMainParams() {
         strNetworkID = "main";
         consensus.nSubsidyHalvingInterval = 210000;
+        // FIXME: Activate BIP16 with a softfork.
+        consensus.BIP16Height = 10000000;
         /* Note that these are not the actual activation heights, but blocks
            after them.  They are too deep in the chain to be ever reorged,
            and thus this is also fine.  */
+
         // FIXME: Activate BIP16 with a softfork.
         consensus.BIP16Height = 0;
         consensus.BIP34Height = 100000000;
@@ -109,6 +112,7 @@ public:
         consensus.BIP66Height = 130000;
         consensus.powLimit = 	uint256S("0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 24 * 14 * 60 * 60; //14 * 24 * 60 * 60; // two weeks
+
         consensus.nPowTargetSpacing = 10 * 60;
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
@@ -119,15 +123,8 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 0;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
 
-        // Deployment of BIP68, BIP112, and BIP113.
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 0; // Not yet enabled
-
-        // Deployment of SegWit (BIP141, BIP143, and BIP147)
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].bit = 1;
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 0; // Not yet enabled
+        // CSV (BIP68, BIP112 and BIP113) as well as segwit (BIP141, BIP143 and
+        // BIP147) are deployed together with P2SH.
 
         // The best chain should have at least this much work.
         // The value is the chain work of the Namecoin mainnet chain at height
@@ -270,6 +267,9 @@ hashMerkleRoot: 234651063df5f8b01ecc2fc3a134fa1cb9dc9da9cce0149049483ba1b1469dfb
             1 // * estimated number of transactions per second after checkpoint
         };
 
+        /* disable fallback fee on mainnet */
+//        m_fallback_fee_enabled = false;
+
         /* See also doc/NamecoinBugs.txt for more explanation on the
            historical bugs added below.  */
 
@@ -326,10 +326,10 @@ public:
     CTestNetParams() {
         strNetworkID = "test";
         consensus.nSubsidyHalvingInterval = 210000;
-        /* As before, these are not the actual activation heights but some
-           blocks after them.  */
         // FIXME: Activate BIP16 with a softfork.
         consensus.BIP16Height = 10000000;
+        /* As before, these are not the actual activation heights but some
+           blocks after them.  */
         consensus.BIP34Height = 130000;
         consensus.BIP34Hash = uint256S("0xe0a05455d89a54bb7c1b5bb785d6b1b7c5bda42ed4ce8dc19d68652ba8835954");
         consensus.BIP65Height = 130000;
@@ -347,15 +347,8 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
 
-        // Deployment of BIP68, BIP112, and BIP113.
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 0; // Not yet enabled
-
-        // Deployment of SegWit (BIP141, BIP143, and BIP147)
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].bit = 1;
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 0; // Not yet enabled
+        // CSV (BIP68, BIP112 and BIP113) as well as segwit (BIP141, BIP143 and
+        // BIP147) are deployed together with P2SH.
 
         // The best chain should have at least this much work.
         // The value is the chain work of the Namecoin testnet chain at height
@@ -458,6 +451,9 @@ public:
             1
         };
 
+        /* enable fallback fee on testnet */
+        //m_fallback_fee_enabled = true;
+
         assert(mapHistoricBugs.empty());
     }
 
@@ -475,7 +471,7 @@ public:
     CRegTestParams() {
         strNetworkID = "regtest";
         consensus.nSubsidyHalvingInterval = 150;
-        consensus.BIP16Height = 0; // always enforce P2SH BIP16 on regtest
+        consensus.BIP16Height = 432; // Corresponds to activation height using BIP9 rules
         consensus.BIP34Height = 100000000; // BIP34 has not activated on regtest (far in the future so block v1 are not rejected in tests)
         consensus.BIP34Hash = uint256();
         consensus.BIP65Height = 1351; // BIP65 activated on regtest (Used in rpc activation tests)
@@ -491,12 +487,6 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 0;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].bit = 1;
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = Consensus::BIP9Deployment::ALWAYS_ACTIVE;
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00");
@@ -590,6 +580,9 @@ public:
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
 
         bech32_hrp = "dcrt";
+
+        /* enable fallback fee on regtest */
+       // m_fallback_fee_enabled = true;
 
         assert(mapHistoricBugs.empty());
     }
