@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2014-2017 Daniel Kraft
+# Copyright (c) 2014-2018 Daniel Kraft
 # Distributed under the MIT/X11 software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -49,11 +49,7 @@ class NameWalletTest (NameTestFramework):
 
     bal = self.nodes[ind].getbalance ()
     assert_equal (bal, initialBalance - spent)
-
     assert_equal (self.nodes[ind].getbalance (), bal)
-    assert_equal (self.nodes[ind].getbalance (""), bal)
-    assert_equal (self.nodes[ind].getbalance ("*"), bal)
-    assert_equal (self.nodes[ind].listaccounts (), {"":bal})
 
   def checkBalances (self, spentA = zero, spentB = zero):
     """
@@ -122,7 +118,7 @@ class NameWalletTest (NameTestFramework):
     # Check that we use legacy addresses.
     # FIXME: Remove once we have segwit.
     addr = self.nodes[0].getnewaddress ()
-    info = self.nodes[0].validateaddress (addr)
+    info = self.nodes[0].getaddressinfo (addr)
     assert not info['isscript']
     assert not info['iswitness']
 
@@ -156,13 +152,15 @@ class NameWalletTest (NameTestFramework):
     fee += self.getFee (2, newC[0], nameFee)
     self.generate (0, 5)
     self.checkBalances (fee)
-    firstB = self.firstupdateName (2, "name-b", newB, "value", addrB)
+    firstB = self.firstupdateName (2, "name-b", newB, "value",
+                                   {"destAddress": addrB})
     fee = self.getFee (2, firstB)
     firstC = self.firstupdateName (2, "name-c", newC, "value")
     fee += self.getFee (2, firstC)
     self.generate (0, 10)
     self.checkBalances (fee)
-    updC = self.nodes[2].name_update ("name-c", "new value", addrB)
+    updC = self.nodes[2].name_update ("name-c", "new value",
+                                      {"destAddress": addrB})
     fee = self.getFee (2, updC)
     self.generate (0, 1)
     self.checkBalances (fee)
@@ -195,7 +193,8 @@ class NameWalletTest (NameTestFramework):
     addrDest = self.nodes[2].getnewaddress ()
     newDest = self.nodes[0].name_new ("destination")
     self.generate (0, 5)
-    self.firstupdateName (0, "destination", newDest, "value", addrDest)
+    self.firstupdateName (0, "destination", newDest, "value",
+                          {"destAddress": addrDest})
     self.generate (0, 10)
     self.checkName (3, "destination", "value", None, False)
 

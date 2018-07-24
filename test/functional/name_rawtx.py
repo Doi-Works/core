@@ -81,16 +81,16 @@ class NameRawTxTest (NameTestFramework):
     self.generate (2, 1)
 
     data = self.checkName (2, "my-name", "enjoy", None, False)
-    validate = self.nodes[1].validateaddress (data['address'])
-    assert validate['ismine']
+    info = self.nodes[1].getaddressinfo (data['address'])
+    assert info['ismine']
     data = self.nodes[0].name_list ("my-name")
     assert_equal (len (data), 1)
     assert_equal (data[0]['name'], "my-name")
-    assert_equal (data[0]['transferred'], True)
+    assert_equal (data[0]['ismine'], False)
     data = self.nodes[1].name_list ("my-name")
     assert_equal (len (data), 1)
     assert_equal (data[0]['name'], "my-name")
-    assert_equal (data[0]['transferred'], False)
+    assert_equal (data[0]['ismine'], True)
 
     assert_equal (balanceA + price, self.nodes[0].getbalance ())
     # Node 1 gets a block matured, take this into account.
@@ -120,7 +120,7 @@ class NameRawTxTest (NameTestFramework):
     tx += outB[12:-8]  # second txout
     tx += '00' * 4     # locktime
 
-    signed = self.nodes[0].signrawtransaction (tx)
+    signed = self.nodes[0].signrawtransactionwithwallet (tx)
     assert_raises_rpc_error (-26, None,
                              self.nodes[0].sendrawtransaction, signed['hex'])
 
@@ -168,7 +168,7 @@ class NameRawTxTest (NameTestFramework):
     nameInd = self.rawtxOutputIndex (ind, tx['hex'], toAddr)
     nameTx = self.nodes[ind].namerawtransaction (tx['hex'], nameInd, op)
 
-    tx = self.nodes[ind].signrawtransaction (nameTx['hex'])
+    tx = self.nodes[ind].signrawtransactionwithwallet (nameTx['hex'])
     txid = self.nodes[ind].sendrawtransaction (tx['hex'])
 
     return {"txid": txid, "vout": nameInd}, nameTx

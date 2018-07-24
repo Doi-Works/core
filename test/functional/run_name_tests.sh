@@ -3,11 +3,17 @@
 echo "\nName expiration..."
 ./name_expiration.py
 
-echo "\nName with immature name_new..."
-./name_immature_new.py
+echo "\nName with immature inputs..."
+./name_immature_inputs.py
+
+echo "\nName ismine field..."
+./name_ismine.py
 
 echo "\nName list..."
 ./name_list.py
+
+echo "\nName listunspent..."
+./name_listunspent.py
 
 echo "\nName multisig..."
 ./name_multisig.py
@@ -26,6 +32,9 @@ echo "\nName reorgs..."
 
 echo "\nName scanning..."
 ./name_scanning.py
+
+echo "\nName operation with sendCoins..."
+./name_sendcoins.py
 
 echo "\nName wallet..."
 ./name_wallet.py

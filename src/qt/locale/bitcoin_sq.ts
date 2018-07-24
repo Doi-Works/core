@@ -38,14 +38,6 @@
         <translation>Zgjidh adresen ku do te dergoni monedhat</translation>
     </message>
     <message>
-        <source>Choose the address to receive coins with</source>
-        <translation>Zgjidh adresën ku do të merrni monedhat</translation>
-    </message>
-    <message>
-        <source>C&amp;hoose</source>
-        <translation>Zgjidh</translation>
-    </message>
-    <message>
         <source>Sending addresses</source>
         <translation>Duke derguar adresen</translation>
     </message>
@@ -109,19 +101,15 @@
     <name>AskPassphraseDialog</name>
     <message>
         <source>Enter passphrase</source>
-        <translation>Futni fjalëkalimin</translation>
+        <translation>Futni frazkalimin</translation>
     </message>
     <message>
         <source>New passphrase</source>
-        <translation>Fjalëkalimi i ri</translation>
+        <translation>Frazkalim i ri</translation>
     </message>
     <message>
         <source>Repeat new passphrase</source>
-        <translation>Përsërisni fjalëkalimin e ri</translation>
-    </message>
-    <message>
-        <source>Show password</source>
-        <translation>Trego fjalëkalimin</translation>
+        <translation>Përsërisni frazkalimin e ri</translation>
     </message>
     <message>
         <source>Encrypt wallet</source>
@@ -129,11 +117,11 @@
     </message>
     <message>
         <source>This operation needs your wallet passphrase to unlock the wallet.</source>
-        <translation>Ky veprim ka nevojë per fjalëkalimin e portofolit tuaj që të hapë portofolin.</translation>
+        <translation>Ky veprim ka nevojë per frazkalimin e portofolit tuaj që të ç'kyç portofolin.</translation>
     </message>
     <message>
         <source>Unlock wallet</source>
-        <translation>Hap portofolin.</translation>
+        <translation>ç'kyç portofolin.</translation>
     </message>
     <message>
         <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
@@ -145,11 +133,7 @@
     </message>
     <message>
         <source>Change passphrase</source>
-        <translation>Ndrysho fjalëkalimin</translation>
-    </message>
-    <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
-        <translation>Fusni fjalëkalimin e vjetër dhe fjalëkalimin e ri që të hapni portofolin.</translation>
+        <translation>Ndrysho frazkalimin</translation>
     </message>
     <message>
         <source>Confirm wallet encryption</source>

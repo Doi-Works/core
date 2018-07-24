@@ -13,8 +13,8 @@
 #include <qt/test/compattests.h>
 
 #ifdef ENABLE_WALLET
+#include <qt/test/addressbooktests.h>
 #include <qt/test/paymentservertests.h>
-#include <qt/test/managenamestests.h>
 #include <qt/test/wallettests.h>
 #endif
 
@@ -26,12 +26,6 @@
 
 #if defined(QT_STATICPLUGIN)
 #include <QtPlugin>
-#if QT_VERSION < 0x050000
-Q_IMPORT_PLUGIN(qcncodecs)
-Q_IMPORT_PLUGIN(qjpcodecs)
-Q_IMPORT_PLUGIN(qtwcodecs)
-Q_IMPORT_PLUGIN(qkrcodecs)
-#else
 #if defined(QT_QPA_PLATFORM_MINIMAL)
 Q_IMPORT_PLUGIN(QMinimalIntegrationPlugin);
 #endif
@@ -41,7 +35,6 @@ Q_IMPORT_PLUGIN(QXcbIntegrationPlugin);
 Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 #elif defined(QT_QPA_PLATFORM_COCOA)
 Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
-#endif
 #endif
 #endif
 
@@ -100,7 +93,7 @@ int main(int argc, char *argv[])
     if (QTest::qExec(&test5) != 0) {
         fInvalid = true;
     }
-    ManageNamesTests test6;
+    AddressBookTests test6;
     if (QTest::qExec(&test6) != 0) {
         fInvalid = true;
     }

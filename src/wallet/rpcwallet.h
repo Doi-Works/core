@@ -5,6 +5,7 @@
 #ifndef BITCOIN_WALLET_RPCWALLET_H
 #define BITCOIN_WALLET_RPCWALLET_H
 
+#include <map>
 #include <string>
 
 class CCoinControl;
@@ -12,6 +13,9 @@ class CRPCTable;
 class CWallet;
 class CWalletTx;
 class JSONRPCRequest;
+class UniValue;
+
+typedef std::map<std::string, std::string> mapValue_t;
 
 void RegisterWalletRPCCommands(CRPCTable &t);
 
@@ -21,14 +25,17 @@ void RegisterWalletRPCCommands(CRPCTable &t);
  * @param[in] request JSONRPCRequest that wishes to access a wallet
  * @return nullptr if no wallet should be used, or a pointer to the CWallet
  */
-CWallet *GetWalletForJSONRPCRequest(const JSONRPCRequest& request);
+std::shared_ptr<CWallet> GetWalletForJSONRPCRequest(const JSONRPCRequest& request);
 
 std::string HelpRequiringPassphrase(CWallet *);
 void EnsureWalletIsUnlocked(CWallet *);
 bool EnsureWalletIsAvailable(CWallet *, bool avoidException);
-void SendMoneyToScript(CWallet* pwallet, const CScript& scriptPubKey,
-                       const CTxIn* withInput, CAmount nValue,
-                       bool fSubtractFeeFromAmount, CWalletTx& wtxNew,
-                       const CCoinControl& coin_control);
+CTransactionRef SendMoneyToScript(CWallet* pwallet, const CScript& scriptPubKey,
+                                  const CTxIn* withInput, CAmount nValue,
+                                  bool fSubtractFeeFromAmount,
+                                  const CCoinControl& coin_control,
+                                  mapValue_t mapValue, std::string fromAccount);
 
+UniValue getaddressinfo(const JSONRPCRequest& request);
+UniValue signrawtransactionwithwallet(const JSONRPCRequest& request);
 #endif //BITCOIN_WALLET_RPCWALLET_H

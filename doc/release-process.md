@@ -63,7 +63,7 @@ If you're using the automated script (found in [contrib/gitian-build.sh](/contri
 Setup Gitian descriptors:
 
     pushd ./namecoin-core
-    export SIGNER=(your Gitian key, ie bluematt, sipa, etc)
+    export SIGNER="(your Gitian key, ie bluematt, sipa, etc)"
     export VERSION=(new version, e.g. 0.8.0)
     git fetch
     git checkout nc${VERSION}
@@ -89,11 +89,13 @@ Ensure gitian-builder is up-to-date:
     wget -P inputs http://downloads.sourceforge.net/project/osslsigncode/osslsigncode/osslsigncode-1.7.1.tar.gz
     popd
 
-Create the OS X SDK tarball, see the [OS X readme](README_osx.md) for details, and copy it into the inputs directory.
+Create the macOS SDK tarball, see the [macOS readme](README_osx.md) for details, and copy it into the inputs directory.
 
 ### Optional: Seed the Gitian sources cache and offline git repositories
 
-By default, Gitian will fetch source files as needed. To cache them ahead of time:
+NOTE: Gitian is sometimes unable to download files. If you have errors, try the step below.
+
+By default, Gitian will fetch source files as needed. To cache them ahead of time, make sure you have checked out the tag you want to build in bitcoin, then:
 
     pushd ./gitian-builder
     make -C ../namecoin-core/depends download SOURCES_PATH=`pwd`/cache/common
@@ -109,20 +111,20 @@ NOTE: Offline builds must use the --url flag to ensure Gitian fetches only from 
 
 The gbuild invocations below <b>DO NOT DO THIS</b> by default.
 
-### Build and sign Namecoin Core for Linux, Windows, and OS X:
+### Build and sign Namecoin Core for Linux, Windows, and macOS:
 
     pushd ./gitian-builder
     ./bin/gbuild --num-make 2 --memory 3000 --commit namecoin=nc${VERSION} ../namecoin-core/contrib/gitian-descriptors/gitian-linux.yml
-    ./bin/gsign --signer $SIGNER --release ${VERSION}-linux --destination ../gitian.sigs/ ../namecoin-core/contrib/gitian-descriptors/gitian-linux.yml
+    ./bin/gsign --signer "$SIGNER" --release ${VERSION}-linux --destination ../gitian.sigs/ ../namecoin-core/contrib/gitian-descriptors/gitian-linux.yml
     mv build/out/namecoin-*.tar.gz build/out/src/namecoin-*.tar.gz ../
 
     ./bin/gbuild --num-make 2 --memory 3000 --commit namecoin=nc${VERSION} ../namecoin-core/contrib/gitian-descriptors/gitian-win.yml
-    ./bin/gsign --signer $SIGNER --release ${VERSION}-win-unsigned --destination ../gitian.sigs/ ../namecoin-core/contrib/gitian-descriptors/gitian-win.yml
+    ./bin/gsign --signer "$SIGNER" --release ${VERSION}-win-unsigned --destination ../gitian.sigs/ ../namecoin-core/contrib/gitian-descriptors/gitian-win.yml
     mv build/out/namecoin-*-win-unsigned.tar.gz inputs/namecoin-win-unsigned.tar.gz
     mv build/out/namecoin-*.zip build/out/namecoin-*.exe ../
 
     ./bin/gbuild --num-make 2 --memory 3000 --commit namecoin=nc${VERSION} ../namecoin-core/contrib/gitian-descriptors/gitian-osx.yml
-    ./bin/gsign --signer $SIGNER --release ${VERSION}-osx-unsigned --destination ../gitian.sigs/ ../namecoin-core/contrib/gitian-descriptors/gitian-osx.yml
+    ./bin/gsign --signer "$SIGNER" --release ${VERSION}-osx-unsigned --destination ../gitian.sigs/ ../namecoin-core/contrib/gitian-descriptors/gitian-osx.yml
     mv build/out/namecoin-*-osx-unsigned.tar.gz inputs/namecoin-osx-unsigned.tar.gz
     mv build/out/namecoin-*.tar.gz build/out/namecoin-*.dmg ../
     popd
@@ -132,7 +134,7 @@ Build output expected:
   1. source tarball (`namecoin-${VERSION}.tar.gz`)
   2. linux 32-bit and 64-bit dist tarballs (`namecoin-${VERSION}-linux[32|64].tar.gz`)
   3. windows 32-bit and 64-bit unsigned installers and dist zips (`namecoin-${VERSION}-win[32|64]-setup-unsigned.exe`, `namecoin-${VERSION}-win[32|64].zip`)
-  4. OS X unsigned installer and dist tarball (`namecoin-${VERSION}-osx-unsigned.dmg`, `namecoin-${VERSION}-osx64.tar.gz`)
+  4. macOS unsigned installer and dist tarball (`namecoin-${VERSION}-osx-unsigned.dmg`, `namecoin-${VERSION}-osx64.tar.gz`)
   5. Gitian signatures (in `gitian.sigs/${VERSION}-<linux|{win,osx}-unsigned>/(your Gitian key)/`)
 
 ### Verify other gitian builders signatures to your own. (Optional)
@@ -152,22 +154,22 @@ Verify the signatures
 Commit your signature to gitian.sigs:
 
     pushd gitian.sigs
-    git add ${VERSION}-linux/${SIGNER}
-    git add ${VERSION}-win-unsigned/${SIGNER}
-    git add ${VERSION}-osx-unsigned/${SIGNER}
+    git add ${VERSION}-linux/"${SIGNER}"
+    git add ${VERSION}-win-unsigned/"${SIGNER}"
+    git add ${VERSION}-osx-unsigned/"${SIGNER}"
     git commit -a
     git push  # Assuming you can push to the gitian.sigs tree
     popd
 
 ( **Not in Namecoin yet.** )
 
-Codesigner only: Create Windows/OS X detached signatures:
+Codesigner only: Create Windows/macOS detached signatures:
 - Only one person handles codesigning. Everyone else should skip to the next step.
-- Only once the Windows/OS X builds each have 3 matching signatures may they be signed with their respective release keys.
+- Only once the Windows/macOS builds each have 3 matching signatures may they be signed with their respective release keys.
 
-Codesigner only: Sign the osx binary:
+Codesigner only: Sign the macOS binary:
 
-    transfer bitcoin-osx-unsigned.tar.gz to osx for signing
+    transfer bitcoin-osx-unsigned.tar.gz to macOS for signing
     tar xf bitcoin-osx-unsigned.tar.gz
     ./detached-sig-create.sh -s "Key ID"
     Enter the keychain password and authorize the signature
@@ -192,16 +194,16 @@ Codesigner only: Commit the detached codesign payloads:
     git tag -s v${VERSION} HEAD
     git push the current branch and new tag
 
-Non-codesigners: wait for Windows/OS X detached signatures:
+Non-codesigners: wait for Windows/macOS detached signatures:
 
-- Once the Windows/OS X builds each have 3 matching signatures, they will be signed with their respective release keys.
+- Once the Windows/macOS builds each have 3 matching signatures, they will be signed with their respective release keys.
 - Detached signatures will then be committed to the [namecoin-detached-sigs](https://github.com/namecoin/namecoin-detached-sigs) repository, which can be combined with the unsigned apps to create signed binaries.
 
-( **Not in Namecoin yet.** ) Create (and optionally verify) the signed OS X binary:
+( **Not in Namecoin yet.** ) Create (and optionally verify) the signed macOS binary:
 
     pushd ./gitian-builder
     ./bin/gbuild -i --commit signature=nc${VERSION} ../namecoin-core/contrib/gitian-descriptors/gitian-osx-signer.yml
-    ./bin/gsign --signer $SIGNER --release ${VERSION}-osx-signed --destination ../gitian.sigs/ ../namecoin-core/contrib/gitian-descriptors/gitian-osx-signer.yml
+    ./bin/gsign --signer "$SIGNER" --release ${VERSION}-osx-signed --destination ../gitian.sigs/ ../namecoin-core/contrib/gitian-descriptors/gitian-osx-signer.yml
     ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-osx-signed ../namecoin-core/contrib/gitian-descriptors/gitian-osx-signer.yml
     mv build/out/namecoin-osx-signed.dmg ../namecoin-${VERSION}-osx.dmg
     popd
@@ -210,17 +212,17 @@ Non-codesigners: wait for Windows/OS X detached signatures:
 
     pushd ./gitian-builder
     ./bin/gbuild -i --commit signature=nc${VERSION} ../namecoin-core/contrib/gitian-descriptors/gitian-win-signer.yml
-    ./bin/gsign --signer $SIGNER --release ${VERSION}-win-signed --destination ../gitian.sigs/ ../namecoin-core/contrib/gitian-descriptors/gitian-win-signer.yml
+    ./bin/gsign --signer "$SIGNER" --release ${VERSION}-win-signed --destination ../gitian.sigs/ ../namecoin-core/contrib/gitian-descriptors/gitian-win-signer.yml
     ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-win-signed ../namecoin-core/contrib/gitian-descriptors/gitian-win-signer.yml
     mv build/out/namecoin-*win64-setup.exe ../namecoin-${VERSION}-win64-setup.exe
     mv build/out/namecoin-*win32-setup.exe ../namecoin-${VERSION}-win32-setup.exe
     popd
 
-( **Not in Namecoin yet.** ) Commit your signature for the signed OS X/Windows binaries:
+( **Not in Namecoin yet.** ) Commit your signature for the signed macOS/Windows binaries:
 
     pushd gitian.sigs
-    git add ${VERSION}-osx-signed/${SIGNER}
-    git add ${VERSION}-win-signed/${SIGNER}
+    git add ${VERSION}-osx-signed/"${SIGNER}"
+    git add ${VERSION}-win-signed/"${SIGNER}"
     git commit -a
     git push  # Assuming you can push to the gitian.sigs tree
     popd
@@ -278,14 +280,14 @@ bitcoin.org (see below for bitcoin.org update instructions).
 - Update bitcoin.org version
 
   - First, check to see if the Bitcoin.org maintainers have prepared a
-    release: https://github.com/bitcoin-dot-org/bitcoin.org/labels/Releases
+    release: https://github.com/bitcoin-dot-org/bitcoin.org/labels/Core
 
       - If they have, it will have previously failed their Travis CI
         checks because the final release files weren't uploaded.
         Trigger a Travis CI rebuild---if it passes, merge.
 
   - If they have not prepared a release, follow the Bitcoin.org release
-    instructions: https://github.com/bitcoin-dot-org/bitcoin.org#release-notes
+    instructions: https://github.com/bitcoin-dot-org/bitcoin.org/blob/master/docs/adding-events-release-notes-and-alerts.md#release-notes
 
   - After the pull request is merged, the website will automatically show the newest version within 15 minutes, as well
     as update the OS download links. Ping @saivann/@harding (saivann/harding on Freenode) in case anything goes wrong

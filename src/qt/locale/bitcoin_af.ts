@@ -3,11 +3,11 @@
     <name>AddressBookPage</name>
     <message>
         <source>Right-click to edit address or label</source>
-        <translation>Regsklik om adres of etiket te verander</translation>
+        <translation>Regs-kliek om die adres of etiket te verander</translation>
     </message>
     <message>
         <source>Create a new address</source>
-        <translation>Skep ’n nuwe adres</translation>
+        <translation>Skep 'n nuwe adres</translation>
     </message>
     <message>
         <source>&amp;New</source>
@@ -130,10 +130,6 @@
     <message>
         <source>Repeat new passphrase</source>
         <translation>Herhaal nuwe wagwoord</translation>
-    </message>
-    <message>
-        <source>Show password</source>
-        <translation>Wys wagwoord</translation>
     </message>
     <message>
         <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
@@ -2083,7 +2079,7 @@
     </message>
     <message>
         <source>Done loading</source>
-        <translation>Klaar gelaai</translation>
+        <translation>Klaar met laai</translation>
     </message>
     <message>
         <source>Error</source>

@@ -27,6 +27,12 @@ struct CCheckpointData {
     MapCheckpoints mapCheckpoints;
 };
 
+/**
+ * Holds various statistics on transactions within a chain. Used to estimate
+ * verification progress during chain sync.
+ *
+ * See also: CChainParams::TxData, GuessVerificationProgress.
+ */
 struct ChainTxData {
     int64_t nTime;
     int64_t nTxCount;
@@ -86,6 +92,8 @@ public:
     bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
     /** Return the BIP70 network string (main, test or regtest) */
     std::string NetworkIDString() const { return strNetworkID; }
+    /** Return true if the fallback fee is by default enabled for this network */
+    bool IsFallbackFeeEnabled() const { return m_fallback_fee_enabled; }
     /** Return the list of hostnames to look up for DNS seeds */
     const std::vector<std::string>& DNSSeeds() const { return vSeeds; }
     const std::vector<unsigned char>& Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
@@ -94,6 +102,7 @@ public:
     const CCheckpointData& Checkpoints() const { return checkpointData; }
     const ChainTxData& TxData() const { return chainTxData; }
     void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout);
+    void TurnOffSegwitForUnitTests();
 
     /* Check whether the given tx is a "historic relic" for which to
        skip the validity check.  Return also the "type" of the bug,
@@ -119,6 +128,7 @@ protected:
     bool fMineBlocksOnDemand;
     CCheckpointData checkpointData;
     ChainTxData chainTxData;
+    bool m_fallback_fee_enabled;
 
     /* Map (block height, txid) pairs for buggy transactions onto their
        bug type value.  */
@@ -155,5 +165,10 @@ void SelectParams(const std::string& chain);
  * Allows modifying the Version Bits regtest parameters.
  */
 void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout);
+
+/**
+ * Allows turning off segwit for unit tests.
+ */
+void TurnOffSegwitForUnitTests();
 
 #endif // BITCOIN_CHAINPARAMS_H

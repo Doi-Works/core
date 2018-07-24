@@ -4,9 +4,9 @@
 
 #include <httprpc.h>
 
-#include <base58.h>
 #include <chainparams.h>
 #include <httpserver.h>
+#include <key_io.h>
 #include <rpc/protocol.h>
 #include <rpc/server.h>
 #include <random.h>
@@ -160,8 +160,9 @@ static bool HTTPReq_JSONRPC(HTTPRequest* req, const std::string &)
     }
 
     JSONRPCRequest jreq;
+    jreq.peerAddr = req->GetPeer().ToString();
     if (!RPCAuthorized(authHeader.second, jreq.authUser)) {
-        LogPrintf("ThreadRPCServer incorrect password attempt from %s\n", req->GetPeer().ToString());
+        LogPrintf("ThreadRPCServer incorrect password attempt from %s\n", jreq.peerAddr);
 
         /* Deter brute-forcing
            If this results in a DoS the user really
@@ -214,7 +215,7 @@ static bool InitRPCAuthentication()
 {
     if (gArgs.GetArg("-rpcpassword", "") == "")
     {
-        LogPrintf("No rpcpassword set - using random cookie authentication\n");
+        LogPrintf("No rpcpassword set - using random cookie authentication.\n");
         if (!GenerateAuthCookie(&strRPCUserColonPass)) {
             uiInterface.ThreadSafeMessageBox(
                 _("Error: A fatal internal error occurred, see debug.log for details"), // Same message as AbortNode
@@ -224,6 +225,10 @@ static bool InitRPCAuthentication()
     } else {
         LogPrintf("Config options rpcuser and rpcpassword will soon be deprecated. Locally-run instances may remove rpcuser to use cookie-based auth, or may be replaced with rpcauth. Please see share/rpcuser for rpcauth auth generation.\n");
         strRPCUserColonPass = gArgs.GetArg("-rpcuser", "") + ":" + gArgs.GetArg("-rpcpassword", "");
+    }
+    if (gArgs.GetArg("-rpcauth","") != "")
+    {
+        LogPrintf("Using rpcauth authentication.\n");
     }
     return true;
 }
@@ -254,6 +259,9 @@ void StopHTTPRPC()
 {
     LogPrint(BCLog::RPC, "Stopping HTTP RPC server\n");
     UnregisterHTTPHandler("/", true);
+#ifdef ENABLE_WALLET
+    UnregisterHTTPHandler("/wallet/", false);
+#endif
     if (httpRPCTimerInterface) {
         RPCUnsetTimerInterface(httpRPCTimerInterface.get());
         httpRPCTimerInterface.reset();

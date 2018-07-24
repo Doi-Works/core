@@ -4,9 +4,9 @@
 
 #include <core_io.h>
 
-#include <base58.h>
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
+#include <key_io.h>
 #include <names/common.h>
 #include <script/names.h>
 #include <script/script.h>
@@ -36,7 +36,7 @@ std::string FormatScript(const CScript& script)
     while (it != script.end()) {
         CScript::const_iterator it2 = it;
         std::vector<unsigned char> vch;
-        if (script.GetOp2(it, op, &vch)) {
+        if (script.GetOp(it, op, vch)) {
             if (op == OP_0) {
                 ret += "0 ";
                 continue;
@@ -83,6 +83,7 @@ std::string ScriptToAsmStr(const CScript& script, const bool fAttemptSighashDeco
 {
     std::string str;
     opcodetype opcode;
+    opcodetype lastOpcode = OP_0;
     std::vector<unsigned char> vch;
     CScript::const_iterator pc = script.begin();
     while (pc < script.end()) {
@@ -95,7 +96,14 @@ std::string ScriptToAsmStr(const CScript& script, const bool fAttemptSighashDeco
         }
         if (0 <= opcode && opcode <= OP_PUSHDATA4) {
             if (vch.size() <= static_cast<std::vector<unsigned char>::size_type>(4)) {
-                str += strprintf("%d", CScriptNum(vch, false).getint());
+                if ((lastOpcode == OP_NAME_NEW
+                      || lastOpcode == OP_NAME_UPDATE
+                      || lastOpcode == OP_NAME_FIRSTUPDATE)
+                    && !vch.empty()) {
+                      str += HexStr(vch);
+                } else {
+                    str += strprintf("%d", CScriptNum(vch, false).getint());
+                }
             } else {
                 // the IsUnspendable check makes sure not to try to decode OP_RETURN data that may match the format of a signature
                 if (fAttemptSighashDecode && !script.IsUnspendable()) {
@@ -119,6 +127,7 @@ std::string ScriptToAsmStr(const CScript& script, const bool fAttemptSighashDeco
         } else {
             str += GetOpName(opcode);
         }
+        lastOpcode = opcode;
     }
     return str;
 }
@@ -139,53 +148,7 @@ void ScriptPubKeyToUniv(const CScript& scriptPubKey,
 
     const CNameScript nameOp(scriptPubKey);
     if (nameOp.isNameOp ())
-    {
-        UniValue jsonOp(UniValue::VOBJ);
-        switch (nameOp.getNameOp ())
-        {
-        case OP_NAME_NEW:
-            jsonOp.pushKV ("op", "name_new");
-            jsonOp.pushKV ("hash", HexStr (nameOp.getOpHash ()));
-            break;
-
-        case OP_NAME_FIRSTUPDATE:
-        {
-            const std::string name = ValtypeToString (nameOp.getOpName ());
-            const std::string value = ValtypeToString (nameOp.getOpValue ());
-
-            jsonOp.pushKV ("op", "name_firstupdate");
-            jsonOp.pushKV ("name", name);
-            jsonOp.pushKV ("value", value);
-            jsonOp.pushKV ("rand", HexStr (nameOp.getOpRand ()));
-            break;
-        }
-
-        case OP_NAME_UPDATE:
-        {
-            const std::string name = ValtypeToString (nameOp.getOpName ());
-            const std::string value = ValtypeToString (nameOp.getOpValue ());
-
-            jsonOp.pushKV ("op", "name_update");
-            jsonOp.pushKV ("name", name);
-            jsonOp.pushKV ("value", value);
-            break;
-        }
-        case OP_NAME_DOI:
-        {
-            const std::string name = ValtypeToString (nameOp.getOpName ());
-            const std::string value = ValtypeToString (nameOp.getOpValue ());
-
-            jsonOp.pushKV ("op", "name_doi");
-            jsonOp.pushKV ("name", name);
-            jsonOp.pushKV ("value", value);
-            break;
-        }
-        default:
-            assert (false);
-        }
-
-        out.pushKV ("nameOp", jsonOp);
-    }
+        out.pushKV ("nameOp", NameOpToUniv (nameOp));
 
     out.pushKV("asm", ScriptToAsmStr(scriptPubKey));
     if (fIncludeHex)
@@ -213,6 +176,7 @@ void TxToUniv(const CTransaction& tx, const uint256& hashBlock, UniValue& entry,
     entry.pushKV("version", tx.nVersion);
     entry.pushKV("size", (int)::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION));
     entry.pushKV("vsize", (GetTransactionWeight(tx) + WITNESS_SCALE_FACTOR - 1) / WITNESS_SCALE_FACTOR);
+    entry.pushKV("weight", GetTransactionWeight(tx));
     entry.pushKV("locktime", (int64_t)tx.nLockTime);
 
     UniValue vin(UniValue::VARR);
@@ -261,6 +225,57 @@ void TxToUniv(const CTransaction& tx, const uint256& hashBlock, UniValue& entry,
         entry.pushKV("blockhash", hashBlock.GetHex());
 
     if (include_hex) {
-        entry.pushKV("hex", EncodeHexTx(tx, serialize_flags)); // the hex-encoded transaction. used the name "hex" to be consistent with the verbose output of "getrawtransaction".
+        entry.pushKV("hex", EncodeHexTx(tx, serialize_flags)); // The hex-encoded transaction. Used the name "hex" to be consistent with the verbose output of "getrawtransaction".
     }
+}
+
+UniValue NameOpToUniv (const CNameScript& nameOp)
+{
+  assert (nameOp.isNameOp ());
+
+  UniValue result(UniValue::VOBJ);
+  switch (nameOp.getNameOp ())
+    {
+      case OP_NAME_NEW:
+        result.pushKV ("op", "name_new");
+        result.pushKV ("hash", HexStr (nameOp.getOpHash ()));
+        break;
+
+      case OP_NAME_FIRSTUPDATE:
+        {
+          const std::string name = ValtypeToString (nameOp.getOpName ());
+          const std::string value = ValtypeToString (nameOp.getOpValue ());
+
+          result.pushKV ("op", "name_firstupdate");
+          result.pushKV ("name", name);
+          result.pushKV ("value", value);
+          result.pushKV ("rand", HexStr (nameOp.getOpRand ()));
+          break;
+        }
+
+      case OP_NAME_UPDATE:
+        {
+          const std::string name = ValtypeToString (nameOp.getOpName ());
+          const std::string value = ValtypeToString (nameOp.getOpValue ());
+
+          result.pushKV ("op", "name_update");
+          result.pushKV ("name", name);
+          result.pushKV ("value", value);
+          break;
+        }
+      case OP_NAME_DOI:
+      {
+          const std::string name = ValtypeToString (nameOp.getOpName ());
+          const std::string value = ValtypeToString (nameOp.getOpValue ());
+
+          result.pushKV ("op", "name_doi");
+          result.pushKV ("name", name);
+          result.pushKV ("value", value);
+          break;
+      }
+      default:
+        assert (false);
+    }
+
+  return result;
 }

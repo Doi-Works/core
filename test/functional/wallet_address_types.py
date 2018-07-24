@@ -93,8 +93,8 @@ class AddressTypeTest(BitcoinTestFramework):
 
     def test_address(self, node, address, multisig, typ):
         """Run sanity checks on an address."""
-        info = self.nodes[node].validateaddress(address)
-        assert(info['isvalid'])
+        info = self.nodes[node].getaddressinfo(address)
+        assert(self.nodes[node].validateaddress(address)['isvalid'])
         if not multisig and typ == 'legacy':
             # P2PKH
             assert(not info['isscript'])
@@ -159,9 +159,10 @@ class AddressTypeTest(BitcoinTestFramework):
         self.test_address(node_sender, change_addresses[0], multisig=False, typ=expected_type)
 
     def run_test(self):
-        # Mine 101 blocks on node5 to bring nodes out of IBD and make sure that
-        # no coinbases are maturing for the nodes-under-test during the test
-        self.nodes[5].generate(101)
+        # Mine 500 blocks on node5 to bring nodes out of IBD and make sure that
+        # no coinbases are maturing for the nodes-under-test during the test.
+        # Also activates segwit at height 432.
+        self.nodes[5].generate(500)
         sync_blocks(self.nodes)
 
         uncompressed_1 = "0496b538e853519c726a2c91e61ec11600ae1390813a627c66fb8be7947be63c52da7589379515d4e0a604f8141781e62294721166bf621e73a82cbf2342c858ee"
@@ -280,7 +281,10 @@ class AddressTypeTest(BitcoinTestFramework):
         self.log.info('getrawchangeaddress defaults to addresstype if -changetype is not set and argument is absent')
         self.test_address(3, self.nodes[3].getrawchangeaddress(), multisig=False, typ='bech32')
 
-        self.log.info('getrawchangeaddress fails with invalid changetype argument')
+        self.log.info('test invalid address type arguments')
+        assert_raises_rpc_error(-5, "Unknown address type ''", self.nodes[3].addmultisigaddress, 2, [compressed_1, compressed_2], None, '')
+        assert_raises_rpc_error(-5, "Unknown address type ''", self.nodes[3].getnewaddress, None, '')
+        assert_raises_rpc_error(-5, "Unknown address type ''", self.nodes[3].getrawchangeaddress, '')
         assert_raises_rpc_error(-5, "Unknown address type 'bech23'", self.nodes[3].getrawchangeaddress, 'bech23')
 
         self.log.info("Nodes with changetype=p2sh-segwit never use a P2WPKH change output")

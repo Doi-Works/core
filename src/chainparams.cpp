@@ -82,6 +82,11 @@ void CChainParams::UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64
     consensus.vDeployments[d].nTimeout = nTimeout;
 }
 
+void CChainParams::TurnOffSegwitForUnitTests ()
+{
+  consensus.BIP16Height = 1000000;
+}
+
 /**
  * Main network
  */
@@ -119,9 +124,11 @@ public:
         consensus.nRuleChangeActivationThreshold = 1916; // 95% of 2016
         consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
 
+
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 0;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
+
 
         // CSV (BIP68, BIP112 and BIP113) as well as segwit (BIP141, BIP143 and
         // BIP147) are deployed together with P2SH.
@@ -268,7 +275,7 @@ hashMerkleRoot: 234651063df5f8b01ecc2fc3a134fa1cb9dc9da9cce0149049483ba1b1469dfb
         };
 
         /* disable fallback fee on mainnet */
-//        m_fallback_fee_enabled = false;
+        m_fallback_fee_enabled = false;
 
         /* See also doc/NamecoinBugs.txt for more explanation on the
            historical bugs added below.  */
@@ -452,7 +459,8 @@ public:
         };
 
         /* enable fallback fee on testnet */
-        //m_fallback_fee_enabled = true;
+        m_fallback_fee_enabled = true;
+
 
         assert(mapHistoricBugs.empty());
     }
@@ -584,6 +592,9 @@ public:
         /* enable fallback fee on regtest */
        // m_fallback_fee_enabled = true;
 
+        /* enable fallback fee on regtest */
+        m_fallback_fee_enabled = true;
+
         assert(mapHistoricBugs.empty());
     }
 
@@ -620,4 +631,9 @@ void SelectParams(const std::string& network)
 void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout)
 {
     globalChainParams->UpdateVersionBitsParameters(d, nStartTime, nTimeout);
+}
+
+void TurnOffSegwitForUnitTests ()
+{
+  globalChainParams->TurnOffSegwitForUnitTests ();
 }

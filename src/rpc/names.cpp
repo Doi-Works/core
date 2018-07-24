@@ -1,27 +1,29 @@
-// Copyright (c) 2014-2017 Daniel Kraft
+// Copyright (c) 2014-2018 Daniel Kraft
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "base58.h"
-#include "chainparams.h"
-#include "core_io.h"
-#include "init.h"
-#include "names/common.h"
-#include "names/main.h"
-#include "primitives/transaction.h"
-#include "rpc/safemode.h"
-#include "rpc/server.h"
-#include "script/names.h"
-#include "txmempool.h"
-#include "utilstrencodings.h"
-#include "validation.h"
+#include <base58.h>
+#include <chainparams.h>
+#include <core_io.h>
+#include <init.h>
+#include <key_io.h>
+#include <names/common.h>
+#include <names/main.h>
+#include <primitives/transaction.h>
+#include <rpc/names.h>
+#include <rpc/server.h>
+#include <script/names.h>
+#include <txmempool.h>
+#include <utilstrencodings.h>
+#include <validation.h>
 #ifdef ENABLE_WALLET
-# include "wallet/rpcwallet.h"
-# include "wallet/wallet.h"
+# include <wallet/rpcwallet.h>
+# include <wallet/wallet.h>
 #endif
 
 #include <boost/xpressive/xpressive_dynamic.hpp>
 
+#include <cassert>
 #include <memory>
 #include <sstream>
 
@@ -30,16 +32,10 @@
 /**
  * Utility routine to construct a "name info" object to return.  This is used
  * for name_show and also name_list.
- * @param name The name.
- * @param value The name's value.
- * @param outp The last update's outpoint.
- * @param addr The name's address script.
- * @param height The name's last update height.
- * @return A JSON object to return.
  */
 UniValue
-getNameInfo (const valtype& name, const valtype& value, const COutPoint& outp,
-             const CScript& addr, int height)
+getNameInfo (const valtype& name, const valtype& value,
+             const COutPoint& outp, const CScript& addr)
 {
   UniValue obj(UniValue::VOBJ);
   obj.pushKV ("name", ValtypeToString (name));
@@ -57,62 +53,208 @@ getNameInfo (const valtype& name, const valtype& value, const COutPoint& outp,
     addrStr = "<nonstandard>";
   obj.pushKV ("address", addrStr);
 
-  /* Calculate expiration data.  */
+  return obj;
+}
+
+/**
+ * Return name info object for a CNameData object.
+ */
+UniValue
+getNameInfo (const valtype& name, const CNameData& data)
+{
+  UniValue result = getNameInfo (name, data.getValue (),
+                                 data.getUpdateOutpoint (),
+                                 data.getAddress ());
+  addExpirationInfo (data.getHeight (), result);
+  return result;
+}
+
+/**
+ * Adds expiration information to the JSON object, based on the last-update
+ * height for the name given.
+ */
+void
+addExpirationInfo (const int height, UniValue& data)
+{
   const int curHeight = chainActive.Height ();
   const Consensus::Params& params = Params ().GetConsensus ();
   const int expireDepth = params.rules->NameExpirationDepth (curHeight);
   const int expireHeight = height + expireDepth;
   const int expiresIn = expireHeight - curHeight;
   const bool expired = (expiresIn <= 0);
-  obj.pushKV ("height", height);
-  obj.pushKV ("expires_in", expiresIn);
-  obj.push_back (Pair ("expired", expired));
+  data.pushKV ("height", height);
+  data.pushKV ("expires_in", expiresIn);
+  data.push_back (Pair ("expired", expired));
+}
 
-  return obj;
+#ifdef ENABLE_WALLET
+/**
+ * Adds the "ismine" field giving ownership info to the JSON object.
+ */
+void
+addOwnershipInfo (const CScript& addr, const CWallet* pwallet,
+                  UniValue& data)
+{
+  if (pwallet == nullptr)
+    {
+      data.push_back (Pair ("ismine", false));
+      return;
+    }
+
+  AssertLockHeld (pwallet->cs_wallet);
+  const isminetype mine = IsMine (*pwallet, addr);
+  const bool isMine = (mine & ISMINE_SPENDABLE);
+  data.push_back (Pair ("ismine", isMine));
+}
+#endif
+
+namespace
+{
+
+/**
+ * Helper class that extracts the wallet for the current RPC request, if any.
+ * It handles the case of disabled wallet support or no wallet being present,
+ * so that it is suitable for the non-wallet RPCs here where we just want to
+ * provide optional extra features (like the "ismine" field).
+ *
+ * The main benefit of having this class is that we can easily LOCK2 with the
+ * wallet and another lock we need, without having to care about the special
+ * cases where no wallet is present or wallet support is disabled.
+ */
+class MaybeWalletForRequest
+{
+
+private:
+
+#ifdef ENABLE_WALLET
+  std::shared_ptr<CWallet> wallet;
+#endif
+
+public:
+
+  explicit MaybeWalletForRequest (const JSONRPCRequest& request)
+  {
+#ifdef ENABLE_WALLET
+    wallet = GetWalletForJSONRPCRequest (request);
+#endif
+  }
+
+  CCriticalSection*
+  getLock () const
+  {
+#ifdef ENABLE_WALLET
+    return (wallet != nullptr ? &wallet->cs_wallet : nullptr);
+#else
+    return nullptr;
+#endif
+  }
+
+#ifdef ENABLE_WALLET
+  CWallet*
+  getWallet ()
+  {
+    return wallet.get ();
+  }
+
+  const CWallet*
+  getWallet () const
+  {
+    return wallet.get ();
+  }
+#endif
+
+};
+
+/**
+ * Variant of addOwnershipInfo that uses a MaybeWalletForRequest.  This takes
+ * care of disabled wallet support.
+ */
+void
+addOwnershipInfo (const CScript& addr, const MaybeWalletForRequest& wallet,
+                  UniValue& data)
+{
+#ifdef ENABLE_WALLET
+  addOwnershipInfo (addr, wallet.getWallet (), data);
+#endif
 }
 
 /**
- * Return name info object for a CNameData object.
- * @param name The name.
- * @param data The name's data.
- * @return A JSON object to return.
+ * Utility variant of getNameInfo that already includes ownership information.
+ * This is the most common call for methods in this file.
  */
 UniValue
-getNameInfo (const valtype& name, const CNameData& data)
+getNameInfo (const valtype& name, const CNameData& data,
+             const MaybeWalletForRequest& wallet)
 {
-  return getNameInfo (name, data.getValue (), data.getUpdateOutpoint (),
-                      data.getAddress (), data.getHeight ());
+  UniValue res = getNameInfo (name, data);
+  addOwnershipInfo (data.getAddress (), wallet, res);
+  return res;
 }
 
-/**
- * Return the help string description to use for name info objects.
- * @param indent Indentation at the line starts.
- * @param trailing Trailing string (e. g., comma for an array of these objects).
- * @return The description string.
- */
-std::string
-getNameInfoHelp (const std::string& indent, const std::string& trailing)
+} // anonymous namespace
+
+/* ************************************************************************** */
+
+HelpTextBuilder::HelpTextBuilder (const std::string& ind, const size_t col)
+  : indent(ind), docColumn(col)
 {
-  std::ostringstream res;
+  result << indent << "{" << std::endl;
+}
 
-  res << indent << "{" << std::endl;
-  res << indent << "  \"name\": xxxxx,           "
-      << "(string) the requested name" << std::endl;
-  res << indent << "  \"value\": xxxxx,          "
-      << "(string) the name's current value" << std::endl;
-  res << indent << "  \"txid\": xxxxx,           "
-      << "(string) the name's last update tx" << std::endl;
-  res << indent << "  \"address\": xxxxx,        "
-      << "(string) the address holding the name" << std::endl;
-  res << indent << "  \"height\": xxxxx,         "
-      << "(numeric) the name's last update height" << std::endl;
-  res << indent << "  \"expires_in\": xxxxx,     "
-      << "(numeric) expire counter for the name" << std::endl;
-  res << indent << "  \"expired\": xxxxx,        "
-      << "(boolean) whether the name is expired" << std::endl;
-  res << indent << "}" << trailing << std::endl;
+std::string
+HelpTextBuilder::finish (const std::string& trailing)
+{
+  result << indent << "}" << trailing << std::endl;
+  return result.str ();
+}
 
-  return res.str ();
+HelpTextBuilder&
+HelpTextBuilder::withLine (const std::string& line)
+{
+  result << indent << "  " << line << std::endl;
+  return *this;
+}
+
+HelpTextBuilder&
+HelpTextBuilder::withField (const std::string& field, const std::string& doc)
+{
+  return withField (field, ",", doc);
+}
+
+HelpTextBuilder&
+HelpTextBuilder::withField (const std::string& field,
+                            const std::string& delim, const std::string& doc)
+{
+  assert (field.size () < docColumn);
+
+  result << indent << "  " << field << delim;
+  result << std::string (docColumn - field.size (), ' ') << doc << std::endl;
+
+  return *this;
+}
+
+NameInfoHelp::NameInfoHelp (const std::string& ind)
+  : HelpTextBuilder(ind, 25)
+{
+  withField ("\"name\": xxxxx", "(string) the requested name");
+  withField ("\"value\": xxxxx", "(string) the name's current value");
+  withField ("\"txid\": xxxxx", "(string) the name's last update tx");
+  withField ("\"vout\": xxxxx",
+           "(numeric) the index of the name output in the last update");
+  withField ("\"address\": xxxxx", "(string) the address holding the name");
+#ifdef ENABLE_WALLET
+  withField ("\"ismine\": xxxxx",
+             "(boolean) whether the name is owned by the wallet");
+#endif
+}
+
+NameInfoHelp&
+NameInfoHelp::withExpiration ()
+{
+  withField ("\"height\": xxxxx", "(numeric) the name's last update height");
+  withField ("\"expires_in\": xxxxx", "(numeric) expire counter for the name");
+  withField ("\"expired\": xxxxx", "(boolean) whether the name is expired");
+  return *this;
 }
 
 /* ************************************************************************** */
@@ -130,7 +272,9 @@ name_show (const JSONRPCRequest& request)
         "\nArguments:\n"
         "1. \"name\"          (string, required) the name to query for\n"
         "\nResult:\n"
-        + getNameInfoHelp ("", "") +
+        + NameInfoHelp ("")
+            .withExpiration ()
+            .finish ("") +
         "\nExamples:\n"
         + HelpExampleCli ("name_show", "\"myname\"")
         + HelpExampleRpc ("name_show", "\"myname\"")
@@ -141,8 +285,6 @@ name_show (const JSONRPCRequest& request)
   if (IsInitialBlockDownload ())
     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
                        "Namecoin is downloading blocks...");
-
-  ObserveSafeMode ();
 
   const std::string nameStr = request.params[0].get_str ();
   const valtype name = ValtypeFromString (nameStr);
@@ -158,7 +300,9 @@ name_show (const JSONRPCRequest& request)
       }
   }
 
-  return getNameInfo (name, data);
+  MaybeWalletForRequest wallet(request);
+  LOCK (wallet.getLock ());
+  return getNameInfo (name, data, wallet);
 }
 
 /* ************************************************************************** */
@@ -175,7 +319,9 @@ name_history (const JSONRPCRequest& request)
         "1. \"name\"          (string, required) the name to query for\n"
         "\nResult:\n"
         "[\n"
-        + getNameInfoHelp ("  ", ",") +
+        + NameInfoHelp ("  ")
+            .withExpiration ()
+            .finish (",") +
         "  ...\n"
         "]\n"
         "\nExamples:\n"
@@ -191,8 +337,6 @@ name_history (const JSONRPCRequest& request)
   if (IsInitialBlockDownload ())
     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
                        "Namecoin is downloading blocks...");
-
-  ObserveSafeMode ();
 
   const std::string nameStr = request.params[0].get_str ();
   const valtype name = ValtypeFromString (nameStr);
@@ -214,10 +358,13 @@ name_history (const JSONRPCRequest& request)
       assert (history.empty ());
   }
 
+  MaybeWalletForRequest wallet(request);
+  LOCK (wallet.getLock ());
+
   UniValue res(UniValue::VARR);
   for (const auto& entry : history.getData ())
-    res.push_back (getNameInfo (name, entry));
-  res.push_back (getNameInfo (name, data));
+    res.push_back (getNameInfo (name, entry, wallet));
+  res.push_back (getNameInfo (name, data, wallet));
 
   return res;
 }
@@ -236,7 +383,9 @@ name_scan (const JSONRPCRequest& request)
         "2. \"count\"       (numeric, optional, default=500) stop after this many names\n"
         "\nResult:\n"
         "[\n"
-        + getNameInfoHelp ("  ", ",") +
+        + NameInfoHelp ("  ")
+            .withExpiration ()
+            .finish (",") +
         "  ...\n"
         "]\n"
         "\nExamples:\n"
@@ -252,8 +401,6 @@ name_scan (const JSONRPCRequest& request)
     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
                        "Namecoin is downloading blocks...");
 
-  ObserveSafeMode ();
-
   valtype start;
   if (request.params.size () >= 1)
     start = ValtypeFromString (request.params[0].get_str ());
@@ -266,13 +413,14 @@ name_scan (const JSONRPCRequest& request)
   if (count <= 0)
     return res;
 
-  LOCK (cs_main);
+  MaybeWalletForRequest wallet(request);
+  LOCK2 (cs_main, wallet.getLock ());
 
   valtype name;
   CNameData data;
   std::unique_ptr<CNameIterator> iter(pcoinsTip->IterateNames ());
   for (iter->seek (start); count > 0 && iter->next (name, data); --count)
-    res.push_back (getNameInfo (name, data));
+    res.push_back (getNameInfo (name, data, wallet));
 
   return res;
 }
@@ -294,7 +442,9 @@ name_filter (const JSONRPCRequest& request)
         "5. \"stat\"        (string, optional) if set to the string \"stat\", print statistics instead of returning the names\n"
         "\nResult:\n"
         "[\n"
-        + getNameInfoHelp ("  ", ",") +
+        + NameInfoHelp ("  ")
+            .withExpiration ()
+            .finish (",") +
         "  ...\n"
         "]\n"
         "\nExamples:\n"
@@ -311,8 +461,6 @@ name_filter (const JSONRPCRequest& request)
   if (IsInitialBlockDownload ())
     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
                        "Namecoin is downloading blocks...");
-
-  ObserveSafeMode ();
 
   /* ********************** */
   /* Interpret parameters.  */
@@ -358,7 +506,8 @@ name_filter (const JSONRPCRequest& request)
   UniValue names(UniValue::VARR);
   unsigned count(0);
 
-  LOCK (cs_main);
+  MaybeWalletForRequest wallet(request);
+  LOCK2 (cs_main, wallet.getLock ());
 
   valtype name;
   CNameData data;
@@ -388,7 +537,7 @@ name_filter (const JSONRPCRequest& request)
       if (stats)
         ++count;
       else
-        names.push_back (getNameInfo (name, data));
+        names.push_back (getNameInfo (name, data, wallet));
 
       if (nb > 0)
         {
@@ -427,13 +576,10 @@ name_pending (const JSONRPCRequest& request)
         "1. \"name\"        (string, optional) only look for this name\n"
         "\nResult:\n"
         "[\n"
-        "  {\n"
-        "    \"op\": xxxx       (string) the operation being performed\n"
-        "    \"name\": xxxx     (string) the name operated on\n"
-        "    \"value\": xxxx    (string) the name's new value\n"
-        "    \"txid\": xxxx     (string) the txid corresponding to the operation\n"
-        "    \"ismine\": xxxx   (boolean) whether the name is owned by the wallet\n"
-        "  },\n"
+        + NameInfoHelp ("  ")
+            .withField ("\"op\": xxxxx",
+                        "(string) the operation being performed")
+            .finish (",") +
         "  ...\n"
         "]\n"
         + HelpExampleCli ("name_pending", "")
@@ -443,12 +589,8 @@ name_pending (const JSONRPCRequest& request)
 
   RPCTypeCheck (request.params, {UniValue::VSTR});
 
-#ifdef ENABLE_WALLET
-  CWallet* pwallet = GetWalletForJSONRPCRequest (request);
-  LOCK2 (pwallet ? &pwallet->cs_wallet : nullptr, mempool.cs);
-#else
-  LOCK (mempool.cs);
-#endif
+  MaybeWalletForRequest wallet(request);
+  LOCK2 (wallet.getLock (), mempool.cs);
 
   std::vector<uint256> txHashes;
   if (request.params.size () == 0)
@@ -463,54 +605,37 @@ name_pending (const JSONRPCRequest& request)
     }
 
   UniValue arr(UniValue::VARR);
-  for (std::vector<uint256>::const_iterator i = txHashes.begin ();
-       i != txHashes.end (); ++i)
+  for (const auto& txHash : txHashes)
     {
-      std::shared_ptr<const CTransaction> tx = mempool.get (*i);
+      std::shared_ptr<const CTransaction> tx = mempool.get (txHash);
       if (!tx || !tx->IsNamecoin ())
         continue;
 
-      for (const auto& txOut : tx->vout)
+      for (size_t n = 0; n < tx->vout.size (); ++n)
         {
+          const auto& txOut = tx->vout[n];
           const CNameScript op(txOut.scriptPubKey);
           if ((!op.isNameOp () || !op.isAnyUpdate ()) && !op.isDoiRegistration ())
             continue;
 
-          const valtype vchName = op.getOpName ();
-          const valtype vchValue = op.getOpValue ();
-
-          const std::string name = ValtypeToString (vchName);
-          const std::string value = ValtypeToString (vchValue);
-
-          std::string strOp;
+          UniValue obj = getNameInfo (op.getOpName (), op.getOpValue (),
+                                      COutPoint (tx->GetHash (), n),
+                                      op.getAddress ());
+          addOwnershipInfo (op.getAddress (), wallet, obj);
           switch (op.getNameOp ())
             {
             case OP_NAME_FIRSTUPDATE:
-              strOp = "name_firstupdate";
+              obj.pushKV ("op", "name_firstupdate");
               break;
             case OP_NAME_UPDATE:
-              strOp = "name_update";
+              obj.pushKV ("op", "name_update");
               break;
             case OP_NAME_DOI:
-              strOp = "name_doi";
+              obj.pushKV ("op", "name_doi");
               break;
             default:
               assert (false);
             }
-
-          UniValue obj(UniValue::VOBJ);
-          obj.pushKV ("op", strOp);
-          obj.pushKV ("name", name);
-          obj.pushKV ("value", value);
-          obj.pushKV ("txid", tx->GetHash ().GetHex ());
-
-#ifdef ENABLE_WALLET
-          isminetype mine = ISMINE_NO;
-          if (pwallet)
-            mine = IsMine (*pwallet, op.getAddress ());
-          const bool isMine = (mine & ISMINE_SPENDABLE);
-          obj.push_back (Pair ("ismine", isMine));
-#endif
 
           arr.push_back (obj);
         }
@@ -616,12 +741,8 @@ namerawtransaction (const JSONRPCRequest& request)
       const valtype name
         = ValtypeFromString (find_value (nameOp, "name").get_str ());
 
-      valtype toHash(rand);
-      toHash.insert (toHash.end (), name.begin (), name.end ());
-      const uint160 hash = Hash160 (toHash);
-
       mtx.vout[nOut].scriptPubKey
-        = CNameScript::buildNameNew (mtx.vout[nOut].scriptPubKey, hash);
+        = CNameScript::buildNameNew (mtx.vout[nOut].scriptPubKey, name, rand);
       result.pushKV ("rand", HexStr (rand.begin (), rand.end ()));
     }
   else if (op == "name_doi")
@@ -719,12 +840,12 @@ name_checkdb (const JSONRPCRequest& request)
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
-    { "namecoin",           "name_show",              &name_show,              {"name"} },
-    { "namecoin",           "name_history",           &name_history,           {"name"} },
-    { "namecoin",           "name_scan",              &name_scan,              {"start","count"} },
-    { "namecoin",           "name_filter",            &name_filter,            {"regexp","maxage","from","nb","stat"} },
-    { "namecoin",           "name_pending",           &name_pending,           {"name"} },
-    { "namecoin",           "name_checkdb",           &name_checkdb,           {} },
+    { "names",              "name_show",              &name_show,              {"name"} },
+    { "names",              "name_history",           &name_history,           {"name"} },
+    { "names",              "name_scan",              &name_scan,              {"start","count"} },
+    { "names",              "name_filter",            &name_filter,            {"regexp","maxage","from","nb","stat"} },
+    { "names",              "name_pending",           &name_pending,           {"name"} },
+    { "names",              "name_checkdb",           &name_checkdb,           {} },
     { "rawtransactions",    "namerawtransaction",     &namerawtransaction,     {"hexstring","vout","nameop"} },
 };
 

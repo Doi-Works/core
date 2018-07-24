@@ -14,6 +14,27 @@ purposes. As such there are repository "maintainers" who are responsible for
 merging pull requests as well as a "lead maintainer" who is responsible for the
 release cycle, overall merging, moderation and appointment of maintainers.
 
+If you're looking for somewhere to start contributing, check out the
+[good first issue](https://github.com/bitcoin/bitcoin/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
+list.
+
+Communication Channels
+----------------------
+
+Most communication about Bitcoin Core development happens on IRC, in the
+#bitcoin-core-dev channel on Freenode. The easiest way to participate on IRC is
+with the web client, [webchat.freenode.net](https://webchat.freenode.net/). Chat
+history logs can be found
+on [botbot.me](https://botbot.me/freenode/bitcoin-core-dev/).
+
+Discussion about code base improvements happens in GitHub issues and on pull
+requests.
+
+The developer
+[mailing list](https://lists.linuxfoundation.org/mailman/listinfo/bitcoin-dev)
+should be used to discuss complicated or controversial changes before working on
+a patch set.
+
 
 Contributor Workflow
 --------------------
@@ -106,10 +127,10 @@ before it will be merged. The basic squashing workflow is shown below.
 
     git checkout your_branch_name
     git rebase -i HEAD~n
-    # n is normally the number of commits in the pull
-    # set commits from 'pick' to 'squash', save and quit
-    # on the next screen, edit/refine commit messages
-    # save and quit
+    # n is normally the number of commits in the pull request.
+    # Set commits (except the one in the first line) from 'pick' to 'squash', save and quit.
+    # On the next screen, edit/refine commit messages.
+    # Save and quit.
     git push -f # (force push to GitHub)
 
 If you have problems with squashing (or other workflows with `git`), you can

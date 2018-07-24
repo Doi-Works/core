@@ -88,7 +88,7 @@ CScript ParseScript(const std::string& s)
 }
 
 // Check that all of the input and output scripts of a transaction contains valid opcodes
-bool CheckTxScriptsSanity(const CMutableTransaction& tx)
+static bool CheckTxScriptsSanity(const CMutableTransaction& tx)
 {
     // Check input scripts for non-coinbase txs
     if (!CTransaction(tx).IsCoinBase()) {
@@ -158,14 +158,6 @@ bool DecodeHexBlk(CBlock& block, const std::string& strHexBlk)
     }
 
     return true;
-}
-
-uint256 ParseHashUV(const UniValue& v, const std::string& strName)
-{
-    std::string strHex;
-    if (v.isStr())
-        strHex = v.getValStr();
-    return ParseHashStr(strHex, strName);  // Note: ParseHashStr("") throws a runtime_error
 }
 
 uint256 ParseHashStr(const std::string& strHex, const std::string& strName)

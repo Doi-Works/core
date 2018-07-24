@@ -5,36 +5,20 @@
 #include <qt/walletmodel.h>
 
 #include <qt/addresstablemodel.h>
-#include <consensus/validation.h>
 #include <qt/guiconstants.h>
-#include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
 #include <qt/paymentserver.h>
 #include <qt/recentrequeststablemodel.h>
 #include <qt/sendcoinsdialog.h>
 #include <qt/transactiontablemodel.h>
 
-#include <base58.h>
-#include <chain.h>
-#include <keystore.h>
-#include <validation.h>
-#include <net.h> // for g_connman
-#include <policy/fees.h>
-#include <policy/rbf.h>
-#include <sync.h>
+#include <interfaces/handler.h>
+#include <interfaces/node.h>
+#include <key_io.h>
 #include <ui_interface.h>
 #include <util.h> // for GetBoolArg
 #include <wallet/coincontrol.h>
-#include <wallet/feebumper.h>
 #include <wallet/wallet.h>
-#include <wallet/walletdb.h> // for BackupWallet
-
-// namecoin API-related includes
-#include <names/common.h>
-#include <names/main.h>
-#include <qt/nametablemodel.h>
-#include <rpc/client.h>
-#include <rpc/server.h>
 
 #include <stdint.h>
 
@@ -43,26 +27,20 @@
 #include <QSet>
 #include <QTimer>
 
-#include <boost/foreach.hpp>
-#include <map>
-#include <univalue.h>
 
-WalletModel::WalletModel(const PlatformStyle *platformStyle, CWallet *_wallet, OptionsModel *_optionsModel, QWidget *parent) :
-    QWidget(parent), wallet(_wallet), optionsModel(_optionsModel), addressTableModel(0),
+WalletModel::WalletModel(std::unique_ptr<interfaces::Wallet> wallet, interfaces::Node& node, const PlatformStyle *platformStyle, OptionsModel *_optionsModel, QObject *parent) :
+    QObject(parent), m_wallet(std::move(wallet)), m_node(node), optionsModel(_optionsModel), addressTableModel(0),
     transactionTableModel(0),
-    nameTableModel(0),
     recentRequestsTableModel(0),
-    cachedBalance(0), cachedUnconfirmedBalance(0), cachedImmatureBalance(0),
     cachedEncryptionStatus(Unencrypted),
     cachedNumBlocks(0)
 {
-    fHaveWatchOnly = wallet->HaveWatchOnly();
+    fHaveWatchOnly = m_wallet->haveWatchOnly();
     fForceCheckBalanceChanged = false;
 
-    addressTableModel = new AddressTableModel(wallet, this);
-    transactionTableModel = new TransactionTableModel(platformStyle, wallet, this);
-    nameTableModel = new NameTableModel(platformStyle, wallet, this);
-    recentRequestsTableModel = new RecentRequestsTableModel(wallet, this);
+    addressTableModel = new AddressTableModel(this);
+    transactionTableModel = new TransactionTableModel(platformStyle, this);
+    recentRequestsTableModel = new RecentRequestsTableModel(this);
 
     // This timer will be fired repeatedly to update the balance
     pollTimer = new QTimer(this);
@@ -77,109 +55,45 @@ WalletModel::~WalletModel()
     unsubscribeFromCoreSignals();
 }
 
-CAmount WalletModel::getBalance(const CCoinControl *coinControl) const
-{
-    if (coinControl)
-    {
-        return wallet->GetAvailableBalance(coinControl);
-    }
-
-    return wallet->GetBalance();
-}
-
-CAmount WalletModel::getUnconfirmedBalance() const
-{
-    return wallet->GetUnconfirmedBalance();
-}
-
-CAmount WalletModel::getImmatureBalance() const
-{
-    return wallet->GetImmatureBalance();
-}
-
-bool WalletModel::haveWatchOnly() const
-{
-    return fHaveWatchOnly;
-}
-
-CAmount WalletModel::getWatchBalance() const
-{
-    return wallet->GetWatchOnlyBalance();
-}
-
-CAmount WalletModel::getWatchUnconfirmedBalance() const
-{
-    return wallet->GetUnconfirmedWatchOnlyBalance();
-}
-
-CAmount WalletModel::getWatchImmatureBalance() const
-{
-    return wallet->GetImmatureWatchOnlyBalance();
-}
-
 void WalletModel::updateStatus()
 {
     EncryptionStatus newEncryptionStatus = getEncryptionStatus();
 
-    if(cachedEncryptionStatus != newEncryptionStatus)
-        Q_EMIT encryptionStatusChanged(newEncryptionStatus);
+    if(cachedEncryptionStatus != newEncryptionStatus) {
+        Q_EMIT encryptionStatusChanged();
+    }
 }
 
 void WalletModel::pollBalanceChanged()
 {
-    // Get required locks upfront. This avoids the GUI from getting stuck on
-    // periodical polls if the core is holding the locks for a longer time -
-    // for example, during a wallet rescan.
-    TRY_LOCK(cs_main, lockMain);
-    if(!lockMain)
+    // Try to get balances and return early if locks can't be acquired. This
+    // avoids the GUI from getting stuck on periodical polls if the core is
+    // holding the locks for a longer time - for example, during a wallet
+    // rescan.
+    interfaces::WalletBalances new_balances;
+    int numBlocks = -1;
+    if (!m_wallet->tryGetBalances(new_balances, numBlocks)) {
         return;
-    TRY_LOCK(wallet->cs_wallet, lockWallet);
-    if(!lockWallet)
-        return;
+    }
 
-    if(fForceCheckBalanceChanged || chainActive.Height() != cachedNumBlocks)
+    if(fForceCheckBalanceChanged || m_node.getNumBlocks() != cachedNumBlocks)
     {
         fForceCheckBalanceChanged = false;
 
         // Balance and number of transactions might have changed
-        cachedNumBlocks = chainActive.Height();
+        cachedNumBlocks = m_node.getNumBlocks();
 
-        checkBalanceChanged();
+        checkBalanceChanged(new_balances);
         if(transactionTableModel)
             transactionTableModel->updateConfirmations();
-
-        std::vector<std::string> successfulNames = sendPendingNameFirstUpdates();
-        for (const auto& name : successfulNames)
-            wallet->ErasePendingNameFirstUpdate(name);
     }
 }
 
-void WalletModel::checkBalanceChanged()
+void WalletModel::checkBalanceChanged(const interfaces::WalletBalances& new_balances)
 {
-    CAmount newBalance = getBalance();
-    CAmount newUnconfirmedBalance = getUnconfirmedBalance();
-    CAmount newImmatureBalance = getImmatureBalance();
-    CAmount newWatchOnlyBalance = 0;
-    CAmount newWatchUnconfBalance = 0;
-    CAmount newWatchImmatureBalance = 0;
-    if (haveWatchOnly())
-    {
-        newWatchOnlyBalance = getWatchBalance();
-        newWatchUnconfBalance = getWatchUnconfirmedBalance();
-        newWatchImmatureBalance = getWatchImmatureBalance();
-    }
-
-    if(cachedBalance != newBalance || cachedUnconfirmedBalance != newUnconfirmedBalance || cachedImmatureBalance != newImmatureBalance ||
-        cachedWatchOnlyBalance != newWatchOnlyBalance || cachedWatchUnconfBalance != newWatchUnconfBalance || cachedWatchImmatureBalance != newWatchImmatureBalance)
-    {
-        cachedBalance = newBalance;
-        cachedUnconfirmedBalance = newUnconfirmedBalance;
-        cachedImmatureBalance = newImmatureBalance;
-        cachedWatchOnlyBalance = newWatchOnlyBalance;
-        cachedWatchUnconfBalance = newWatchUnconfBalance;
-        cachedWatchImmatureBalance = newWatchImmatureBalance;
-        Q_EMIT balanceChanged(newBalance, newUnconfirmedBalance, newImmatureBalance,
-                            newWatchOnlyBalance, newWatchUnconfBalance, newWatchImmatureBalance);
+    if(new_balances.balanceChanged(m_cached_balances)) {
+        m_cached_balances = new_balances;
+        Q_EMIT balanceChanged(new_balances);
     }
 }
 
@@ -274,7 +188,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         return DuplicateAddress;
     }
 
-    CAmount nBalance = getBalance(&coinControl);
+    CAmount nBalance = m_wallet->getAvailableBalance(coinControl);
 
     if(total > nBalance)
     {
@@ -282,22 +196,17 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
     }
 
     {
-        LOCK2(cs_main, wallet->cs_wallet);
-
-        transaction.newPossibleKeyChange(wallet);
-
         CAmount nFeeRequired = 0;
         int nChangePosRet = -1;
         std::string strFailReason;
 
-        CWalletTx *newTx = transaction.getTransaction();
-        CReserveKey *keyChange = transaction.getPossibleKeyChange();
-        bool fCreated = wallet->CreateTransaction(vecSend, NULL, *newTx, *keyChange, nFeeRequired, nChangePosRet, strFailReason, coinControl);
+        auto& newTx = transaction.getWtx();
+        newTx = m_wallet->createTransaction(vecSend, coinControl, true /* sign */, nChangePosRet, nFeeRequired, strFailReason);
         transaction.setTransactionFee(nFeeRequired);
-        if (fSubtractFeeFromAmount && fCreated)
+        if (fSubtractFeeFromAmount && newTx)
             transaction.reassignAmounts(nChangePosRet);
 
-        if(!fCreated)
+        if(!newTx)
         {
             if(!fSubtractFeeFromAmount && (total + nFeeRequired) > nBalance)
             {
@@ -311,7 +220,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         // reject absurdly high fee. (This can never happen because the
         // wallet caps the fee at maxTxFee. This merely serves as a
         // belt-and-suspenders check)
-        if (nFeeRequired > maxTxFee)
+        if (nFeeRequired > m_node.getMaxTxFee())
             return AbsurdFee;
     }
 
@@ -323,9 +232,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
     QByteArray transaction_array; /* store serialized transaction */
 
     {
-        LOCK2(cs_main, wallet->cs_wallet);
-        CWalletTx *newTx = transaction.getTransaction();
-
+        std::vector<std::pair<std::string, std::string>> vOrderForm;
         for (const SendCoinsRecipient &rcp : transaction.getRecipients())
         {
             if (rcp.paymentRequest.IsInitialized())
@@ -336,22 +243,21 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                 }
 
                 // Store PaymentRequests in wtx.vOrderForm in wallet.
-                std::string key("PaymentRequest");
                 std::string value;
                 rcp.paymentRequest.SerializeToString(&value);
-                newTx->vOrderForm.push_back(make_pair(key, value));
+                vOrderForm.emplace_back("PaymentRequest", std::move(value));
             }
             else if (!rcp.message.isEmpty()) // Message from normal bitcoin:URI (bitcoin:123...?message=example)
-                newTx->vOrderForm.push_back(make_pair("Message", rcp.message.toStdString()));
+                vOrderForm.emplace_back("Message", rcp.message.toStdString());
         }
 
-        CReserveKey *keyChange = transaction.getPossibleKeyChange();
-        CValidationState state;
-        if(!wallet->CommitTransaction(*newTx, *keyChange, g_connman.get(), state))
-            return SendCoinsReturn(TransactionCommitFailed, QString::fromStdString(state.GetRejectReason()));
+        auto& newTx = transaction.getWtx();
+        std::string rejectReason;
+        if (!newTx->commit({} /* mapValue */, std::move(vOrderForm), {} /* fromAccount */, rejectReason))
+            return SendCoinsReturn(TransactionCommitFailed, QString::fromStdString(rejectReason));
 
         CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
-        ssTx << *newTx->tx;
+        ssTx << newTx->get();
         transaction_array.append(&(ssTx[0]), ssTx.size());
     }
 
@@ -366,24 +272,23 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
             CTxDestination dest = DecodeDestination(strAddress);
             std::string strLabel = rcp.label.toStdString();
             {
-                LOCK(wallet->cs_wallet);
-
-                std::map<CTxDestination, CAddressBookData>::iterator mi = wallet->mapAddressBook.find(dest);
-
                 // Check if we have a new address or an updated label
-                if (mi == wallet->mapAddressBook.end())
+                std::string name;
+                if (!m_wallet->getAddress(
+                     dest, &name, /* is_mine= */ nullptr, /* purpose= */ nullptr))
                 {
-                    wallet->SetAddressBook(dest, strLabel, "send");
+                    m_wallet->setAddressBook(dest, strLabel, "send");
                 }
-                else if (mi->second.name != strLabel)
+                else if (name != strLabel)
                 {
-                    wallet->SetAddressBook(dest, strLabel, ""); // "" means don't change purpose
+                    m_wallet->setAddressBook(dest, strLabel, ""); // "" means don't change purpose
                 }
             }
         }
-        Q_EMIT coinsSent(wallet, rcp, transaction_array);
+        Q_EMIT coinsSent(this, rcp, transaction_array);
     }
-    checkBalanceChanged(); // update balance immediately, otherwise there could be a short noticeable delay until pollBalanceChanged hits
+
+    checkBalanceChanged(m_wallet->getBalances()); // update balance immediately, otherwise there could be a short noticeable delay until pollBalanceChanged hits
 
     return SendCoinsReturn(OK);
 }
@@ -398,12 +303,6 @@ AddressTableModel *WalletModel::getAddressTableModel()
     return addressTableModel;
 }
 
-
-NameTableModel *WalletModel::getNameTableModel()
-{
-      return nameTableModel;
-}
-
 TransactionTableModel *WalletModel::getTransactionTableModel()
 {
     return transactionTableModel;
@@ -416,11 +315,11 @@ RecentRequestsTableModel *WalletModel::getRecentRequestsTableModel()
 
 WalletModel::EncryptionStatus WalletModel::getEncryptionStatus() const
 {
-    if(!wallet->IsCrypted())
+    if(!m_wallet->isCrypted())
     {
         return Unencrypted;
     }
-    else if(wallet->IsLocked())
+    else if(m_wallet->isLocked())
     {
         return Locked;
     }
@@ -435,7 +334,7 @@ bool WalletModel::setWalletEncrypted(bool encrypted, const SecureString &passphr
     if(encrypted)
     {
         // Encrypt
-        return wallet->EncryptWallet(passphrase);
+        return m_wallet->encryptWallet(passphrase);
     }
     else
     {
@@ -449,39 +348,35 @@ bool WalletModel::setWalletLocked(bool locked, const SecureString &passPhrase)
     if(locked)
     {
         // Lock
-        return wallet->Lock();
+        return m_wallet->lock();
     }
     else
     {
         // Unlock
-        return wallet->Unlock(passPhrase);
+        return m_wallet->unlock(passPhrase);
     }
 }
 
 bool WalletModel::changePassphrase(const SecureString &oldPass, const SecureString &newPass)
 {
-    bool retval;
-    {
-        LOCK(wallet->cs_wallet);
-        wallet->Lock(); // Make sure wallet is locked before attempting pass change
-        retval = wallet->ChangeWalletPassphrase(oldPass, newPass);
-    }
-    return retval;
-}
-
-bool WalletModel::backupWallet(const QString &filename)
-{
-    return wallet->BackupWallet(filename.toLocal8Bit().data());
+    m_wallet->lock(); // Make sure wallet is locked before attempting pass change
+    return m_wallet->changeWalletPassphrase(oldPass, newPass);
 }
 
 // Handlers for core signals
-static void NotifyKeyStoreStatusChanged(WalletModel *walletmodel, CCryptoKeyStore *wallet)
+static void NotifyUnload(WalletModel* walletModel)
+{
+    qDebug() << "NotifyUnload";
+    QMetaObject::invokeMethod(walletModel, "unload", Qt::QueuedConnection);
+}
+
+static void NotifyKeyStoreStatusChanged(WalletModel *walletmodel)
 {
     qDebug() << "NotifyKeyStoreStatusChanged";
     QMetaObject::invokeMethod(walletmodel, "updateStatus", Qt::QueuedConnection);
 }
 
-static void NotifyAddressBookChanged(WalletModel *walletmodel, CWallet *wallet,
+static void NotifyAddressBookChanged(WalletModel *walletmodel,
         const CTxDestination &address, const std::string &label, bool isMine,
         const std::string &purpose, ChangeType status)
 {
@@ -498,9 +393,8 @@ static void NotifyAddressBookChanged(WalletModel *walletmodel, CWallet *wallet,
                               Q_ARG(int, status));
 }
 
-static void NotifyTransactionChanged(WalletModel *walletmodel, CWallet *wallet, const uint256 &hash, ChangeType status)
+static void NotifyTransactionChanged(WalletModel *walletmodel, const uint256 &hash, ChangeType status)
 {
-    Q_UNUSED(wallet);
     Q_UNUSED(hash);
     Q_UNUSED(status);
     QMetaObject::invokeMethod(walletmodel, "updateTransaction", Qt::QueuedConnection);
@@ -523,21 +417,23 @@ static void NotifyWatchonlyChanged(WalletModel *walletmodel, bool fHaveWatchonly
 void WalletModel::subscribeToCoreSignals()
 {
     // Connect signals to wallet
-    wallet->NotifyStatusChanged.connect(boost::bind(&NotifyKeyStoreStatusChanged, this, _1));
-    wallet->NotifyAddressBookChanged.connect(boost::bind(NotifyAddressBookChanged, this, _1, _2, _3, _4, _5, _6));
-    wallet->NotifyTransactionChanged.connect(boost::bind(NotifyTransactionChanged, this, _1, _2, _3));
-    wallet->ShowProgress.connect(boost::bind(ShowProgress, this, _1, _2));
-    wallet->NotifyWatchonlyChanged.connect(boost::bind(NotifyWatchonlyChanged, this, _1));
+    m_handler_unload = m_wallet->handleUnload(boost::bind(&NotifyUnload, this));
+    m_handler_status_changed = m_wallet->handleStatusChanged(boost::bind(&NotifyKeyStoreStatusChanged, this));
+    m_handler_address_book_changed = m_wallet->handleAddressBookChanged(boost::bind(NotifyAddressBookChanged, this, _1, _2, _3, _4, _5));
+    m_handler_transaction_changed = m_wallet->handleTransactionChanged(boost::bind(NotifyTransactionChanged, this, _1, _2));
+    m_handler_show_progress = m_wallet->handleShowProgress(boost::bind(ShowProgress, this, _1, _2));
+    m_handler_watch_only_changed = m_wallet->handleWatchOnlyChanged(boost::bind(NotifyWatchonlyChanged, this, _1));
 }
 
 void WalletModel::unsubscribeFromCoreSignals()
 {
     // Disconnect signals from wallet
-    wallet->NotifyStatusChanged.disconnect(boost::bind(&NotifyKeyStoreStatusChanged, this, _1));
-    wallet->NotifyAddressBookChanged.disconnect(boost::bind(NotifyAddressBookChanged, this, _1, _2, _3, _4, _5, _6));
-    wallet->NotifyTransactionChanged.disconnect(boost::bind(NotifyTransactionChanged, this, _1, _2, _3));
-    wallet->ShowProgress.disconnect(boost::bind(ShowProgress, this, _1, _2));
-    wallet->NotifyWatchonlyChanged.disconnect(boost::bind(NotifyWatchonlyChanged, this, _1));
+    m_handler_unload->disconnect();
+    m_handler_status_changed->disconnect();
+    m_handler_address_book_changed->disconnect();
+    m_handler_transaction_changed->disconnect();
+    m_handler_show_progress->disconnect();
+    m_handler_watch_only_changed->disconnect();
 }
 
 // WalletModel::UnlockContext implementation
@@ -577,80 +473,9 @@ void WalletModel::UnlockContext::CopyFrom(const UnlockContext& rhs)
     rhs.relock = false;
 }
 
-bool WalletModel::getPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const
-{
-    return wallet->GetPubKey(address, vchPubKeyOut);
-}
-
-bool WalletModel::IsSpendable(const CTxDestination& dest) const
-{
-    return IsMine(*wallet, dest) & ISMINE_SPENDABLE;
-}
-
-bool WalletModel::getPrivKey(const CKeyID &address, CKey& vchPrivKeyOut) const
-{
-    return wallet->GetKey(address, vchPrivKeyOut);
-}
-
-// returns a list of COutputs from COutPoints
-void WalletModel::getOutputs(const std::vector<COutPoint>& vOutpoints, std::vector<COutput>& vOutputs)
-{
-    LOCK2(cs_main, wallet->cs_wallet);
-    for (const COutPoint& outpoint : vOutpoints)
-    {
-        auto it = wallet->mapWallet.find(outpoint.hash);
-        if (it == wallet->mapWallet.end()) continue;
-        int nDepth = it->second.GetDepthInMainChain();
-        if (nDepth < 0) continue;
-        COutput out(&it->second, outpoint.n, nDepth, true /* spendable */, true /* solvable */, true /* safe */);
-        vOutputs.push_back(out);
-    }
-}
-
-bool WalletModel::isSpent(const COutPoint& outpoint) const
-{
-    LOCK2(cs_main, wallet->cs_wallet);
-    return wallet->IsSpent(outpoint.hash, outpoint.n);
-}
-
-// AvailableCoins + LockedCoins grouped by wallet address (put change in one group with wallet address)
-void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) const
-{
-    for (auto& group : wallet->ListCoins()) {
-        auto& resultGroup = mapCoins[QString::fromStdString(EncodeDestination(group.first))];
-        for (auto& coin : group.second) {
-            resultGroup.emplace_back(std::move(coin));
-        }
-    }
-}
-
-bool WalletModel::isLockedCoin(uint256 hash, unsigned int n) const
-{
-    LOCK2(cs_main, wallet->cs_wallet);
-    return wallet->IsLockedCoin(hash, n);
-}
-
-void WalletModel::lockCoin(COutPoint& output)
-{
-    LOCK2(cs_main, wallet->cs_wallet);
-    wallet->LockCoin(output);
-}
-
-void WalletModel::unlockCoin(COutPoint& output)
-{
-    LOCK2(cs_main, wallet->cs_wallet);
-    wallet->UnlockCoin(output);
-}
-
-void WalletModel::listLockedCoins(std::vector<COutPoint>& vOutpts)
-{
-    LOCK2(cs_main, wallet->cs_wallet);
-    wallet->ListLockedCoins(vOutpts);
-}
-
 void WalletModel::loadReceiveRequests(std::vector<std::string>& vReceiveRequests)
 {
-    vReceiveRequests = wallet->GetDestValues("rr"); // receive request
+    vReceiveRequests = m_wallet->getDestValues("rr"); // receive request
 }
 
 bool WalletModel::saveReceiveRequest(const std::string &sAddress, const int64_t nId, const std::string &sRequest)
@@ -661,38 +486,21 @@ bool WalletModel::saveReceiveRequest(const std::string &sAddress, const int64_t 
     ss << nId;
     std::string key = "rr" + ss.str(); // "rr" prefix = "receive request" in destdata
 
-    LOCK(wallet->cs_wallet);
     if (sRequest.empty())
-        return wallet->EraseDestData(dest, key);
+        return m_wallet->eraseDestData(dest, key);
     else
-        return wallet->AddDestData(dest, key, sRequest);
-}
-
-bool WalletModel::transactionCanBeAbandoned(uint256 hash) const
-{
-    return wallet->TransactionCanBeAbandoned(hash);
-}
-
-bool WalletModel::abandonTransaction(uint256 hash) const
-{
-    LOCK2(cs_main, wallet->cs_wallet);
-    return wallet->AbandonTransaction(hash);
-}
-
-bool WalletModel::transactionCanBeBumped(uint256 hash) const
-{
-    return feebumper::TransactionCanBeBumped(wallet, hash);
+        return m_wallet->addDestData(dest, key, sRequest);
 }
 
 bool WalletModel::bumpFee(uint256 hash)
 {
     CCoinControl coin_control;
-    coin_control.signalRbf = true;
+    coin_control.m_signal_bip125_rbf = true;
     std::vector<std::string> errors;
     CAmount old_fee;
     CAmount new_fee;
     CMutableTransaction mtx;
-    if (feebumper::CreateTransaction(wallet, hash, coin_control, 0 /* totalFee */, errors, old_fee, new_fee, mtx) != feebumper::Result::OK) {
+    if (!m_wallet->createBumpTransaction(hash, coin_control, 0 /* totalFee */, errors, old_fee, new_fee, mtx)) {
         QMessageBox::critical(0, tr("Fee bump error"), tr("Increasing transaction fee failed") + "<br />(" +
             (errors.size() ? QString::fromStdString(errors[0]) : "") +")");
          return false;
@@ -719,7 +527,7 @@ bool WalletModel::bumpFee(uint256 hash)
     confirmationDialog.exec();
     QMessageBox::StandardButton retval = static_cast<QMessageBox::StandardButton>(confirmationDialog.result());
 
-    // cancel sign&broadcast if users doesn't want to bump the fee
+    // cancel sign&broadcast if user doesn't want to bump the fee
     if (retval != QMessageBox::Yes) {
         return false;
     }
@@ -731,13 +539,13 @@ bool WalletModel::bumpFee(uint256 hash)
     }
 
     // sign bumped transaction
-    if (!feebumper::SignTransaction(wallet, mtx)) {
+    if (!m_wallet->signBumpTransaction(mtx)) {
         QMessageBox::critical(0, tr("Fee bump error"), tr("Can't sign transaction."));
         return false;
     }
     // commit the bumped transaction
     uint256 txid;
-    if (feebumper::CommitTransaction(wallet, hash, std::move(mtx), errors, txid) != feebumper::Result::OK) {
+    if(!m_wallet->commitBumpTransaction(hash, std::move(mtx), errors, txid)) {
         QMessageBox::critical(0, tr("Fee bump error"), tr("Could not commit transaction") + "<br />(" +
             QString::fromStdString(errors[0])+")");
          return false;
@@ -750,273 +558,12 @@ bool WalletModel::isWalletEnabled()
    return !gArgs.GetBoolArg("-disablewallet", DEFAULT_DISABLE_WALLET);
 }
 
-bool WalletModel::hdEnabled() const
+QString WalletModel::getWalletName() const
 {
-    return wallet->IsHDEnabled();
+    return QString::fromStdString(m_wallet->getWalletName());
 }
 
-OutputType WalletModel::getDefaultAddressType() const
+bool WalletModel::isMultiwallet()
 {
-    return g_address_type;
+    return m_node.getWallets().size() > 1;
 }
-
-int WalletModel::getDefaultConfirmTarget() const
-{
-    return nTxConfirmTarget;
-}
-
-bool WalletModel::nameAvailable(const QString &name, QString *reason)
-{
-    UniValue res, isExpired;
-
-    const std::string strName = name.toStdString();
-
-    UniValue params (UniValue::VOBJ);
-    params.pushKV ("name", strName);
-
-    JSONRPCRequest jsonRequest;
-    jsonRequest.strMethod = "name_show";
-    jsonRequest.params = params;
-    jsonRequest.fHelp = false;
-
-    try {
-        res = tableRPC.execute(jsonRequest);
-    } catch (const UniValue& e) {
-        // Make sure we have the correct error response and not something else
-        UniValue message = find_value( e, "message");
-        std::string errorStr = message.get_str();
-
-        if (errorStr.find("name not found") != std::string::npos)
-            return true;
-
-        if(reason)
-            *reason = QString::fromStdString(errorStr);
-
-        LogPrintf ("unexpected nameAvailable response: %s\n", errorStr.c_str());
-        return false;
-    }
-
-    isExpired = find_value( res, "expired");
-    if (isExpired.get_bool())
-      return true;
-
-    return false;
-}
-
-WalletModel::NameNewReturn WalletModel::nameNew(const QString &name)
-{
-    std::string strName = name.toStdString ();
-    std::string data;
-
-    std::vector<UniValue> values;
-
-    UniValue params(UniValue::VOBJ);
-    params.pushKV("name", strName);
-
-    JSONRPCRequest jsonRequest;
-    jsonRequest.strMethod = "name_new";
-    jsonRequest.params = params;
-    jsonRequest.fHelp = false;
-
-    NameNewReturn retval;
-    UniValue res;
-    try {
-        res = tableRPC.execute(jsonRequest);
-    } catch (const UniValue& e) {
-        UniValue message = find_value( e, "message");
-        std::string errorStr = message.get_str();
-        LogPrintf ("nameNew error: %s\n", errorStr.c_str());
-        retval.err_msg = errorStr;
-        retval.ok = false;
-        return retval;
-    }
-
-    values = res.getValues();
-    const auto txid = values[0];
-    const auto  rand = values[1];
-
-    retval.ok = true;
-    retval.hex = txid.get_str(); // txid
-    retval.rand = rand.get_str();
-
-    return retval;
-}
-
-const std::string WalletModel::completePendingNameFirstUpdate(const std::string &name, const std::string &rand, const std::string &txid, const std::string &data, const std::string &toaddress)
-{
-    std::string errorStr;
-    LogPrintf ("WalletModel::completePendingNameFirstUpdate: %s\n", name.c_str());
-
-    UniValue params(UniValue::VOBJ);
-    params.pushKV ("name", name);
-    params.pushKV ("rand", rand);
-    params.pushKV ("tx", txid);
-    params.pushKV ("value", data);
-    if (!toaddress.empty())
-        params.pushKV ("toaddress", toaddress);
-
-    JSONRPCRequest jsonRequest;
-    jsonRequest.strMethod = "name_firstupdate";
-    jsonRequest.params = params;
-    jsonRequest.fHelp = false;
-
-    LogPrintf("executing name_firstupdate name=%s rand=%s tx=%s value=%s toaddr=%s\n",
-        name.c_str(), rand.c_str(), txid.c_str(), data.c_str(), toaddress.c_str());
-
-    UniValue res;
-    try {
-        res = tableRPC.execute(jsonRequest);
-    }
-    catch (const UniValue& e) {
-        UniValue message = find_value( e, "message");
-        errorStr = message.get_str();
-        LogPrintf ("name_firstupdate error: %s\n", errorStr.c_str());
-    }
-
-    return errorStr;
-}
-
-std::vector<std::string> WalletModel::sendPendingNameFirstUpdates()
-{
-    std::vector<std::string> successfulNames;
-
-    LOCK(wallet->cs_wallet);
-    for (const auto& i : wallet->namePendingMap)
-    {
-        JSONRPCRequest jsonRequest;
-        UniValue params1(UniValue::VOBJ);
-        UniValue res1, val;
-
-        // hold the error returned from name_firstupdate, via
-        // completePendingNameFirstUpdate, or empty on success
-        // this will drive the error-handling popup
-        std::string completedResult;
-
-        CNamePendingData npd = CNamePendingData(i.second);
-        std::string name = i.first;
-        std::string txid = npd.getHex();
-        std::string rand = npd.getRand();
-        std::string data = npd.getData();
-        std::string toaddress = npd.getToAddress();
-
-        params1.pushKV ("txid", txid);
-        jsonRequest.strMethod = "gettransaction";
-        jsonRequest.params = params1;
-        jsonRequest.fHelp = false;
-
-        // if we're here, the names doesn't exist
-        // should we remove it from the DB?
-        try {
-            res1 = tableRPC.execute(jsonRequest);
-        }
-        catch (const UniValue& e) {
-            UniValue message = find_value( e, "message");
-            std::string errorStr = message.get_str();
-            LogPrintf ("gettransaction error for name %s: %s\n",
-                       name.c_str(), errorStr.c_str());
-            continue;
-        }
-
-        val = find_value (res1, "confirmations");
-        if (!val.isNum ())
-        {
-            LogPrintf ("No confirmations for name %s\n", name.c_str());
-            continue;
-        }
-
-        const int confirms = val.get_int ();
-        const unsigned int uConfirms = static_cast<unsigned int>(confirms);
-        LogPrintf ("Pending Name FirstUpdate Confirms: %d\n", confirms);
-
-        if (uConfirms < MIN_FIRSTUPDATE_DEPTH)
-            continue;
-
-        std::unique_ptr<WalletModel::UnlockContext> unlock_ctx;
-        if (getEncryptionStatus() == Locked)
-        {
-            if (QMessageBox::Yes != QMessageBox::question(this, tr("Confirm wallet unlock"),
-                  tr("Namecoin Core is about to finalize your name registration for name <b>%1</b>, by sending name_firstupdate. If your wallet is locked, you will be prompted to unlock it. Pressing cancel will delay your name registration by one block, at which point you will be prompted again. Would you like to proceed?").arg(QString::fromStdString(name)),
-                  QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Cancel))
-            {
-                LogPrintf ("User cancelled wallet unlock pre-name_firstupdate. Waiting 1 block.\n");
-                return successfulNames;
-            }
-
-            Q_EMIT requireUnlock();
-            unlock_ctx.reset(new UnlockContext(this, true, true));
-
-            if (!unlock_ctx->isValid())
-                return successfulNames;
-        }
-
-         completedResult = this->completePendingNameFirstUpdate(name, rand, txid, data, toaddress);
-
-        // Locks wallet
-        unlock_ctx.reset();
-
-        // if we got an error on name_firstupdate. prompt user for what to do
-        if (!completedResult.empty())
-        {
-            QString errorMsg = tr("Namecoin Core has encountered an error while attempting to complete your name registration for name <b>%1</b>. The name_firstupdate operation caused the following error to occurr:<br><br>%2<br><br>Would you like to cancel the pending name registration?")
-                .arg(QString::fromStdString(name))
-                .arg(QString::fromStdString(completedResult));
-            // if they didnt hit yes, move onto next pending op, otherwise
-            // the pending transaction will be deleted in the subsequent block
-            if (QMessageBox::Yes != QMessageBox::question(this, tr("Name registration error"), errorMsg, QMessageBox::Yes|QMessageBox::No, QMessageBox::No))
-                continue;
-        }
-
-        successfulNames.push_back(name);
-        nameTableModel->updateEntry(QString::fromStdString(name), QString::fromStdString(data), NameTableEntry::NAME_NEW, CT_UPDATED, "firstupdate pending");
-    }
-    return successfulNames;
-}
-
-QString WalletModel::nameUpdate(const QString &name, const QString &data, const QString &transferToAddress)
-{
-    std::string strName = name.toStdString();
-    std::string strData = data.toStdString();
-    std::string strTransferToAddress = transferToAddress.toStdString();
-    LogPrintf ("wallet attempting name_update: name=%s data=%s toaddress=%s\n",
-            strName.c_str(), strData.c_str(), strTransferToAddress.c_str());
-
-    UniValue params(UniValue::VOBJ);
-    params.pushKV ("name", strName);
-    params.pushKV ("value", strData);
-
-    JSONRPCRequest jsonRequest;
-    jsonRequest.strMethod = "name_update";
-    jsonRequest.params = params;
-    jsonRequest.fHelp = false;
-
-    if (!strTransferToAddress.empty())
-        params.pushKV ("toaddress", strTransferToAddress);
-
-    UniValue res;
-    try {
-        res = tableRPC.execute(jsonRequest);
-    }
-    catch (const UniValue& e) {
-        UniValue message = find_value( e, "message");
-        std::string errorStr = message.get_str();
-        LogPrintf ("name_update error: %s\n", errorStr.c_str());
-        return QString::fromStdString(errorStr);
-    }
-    return tr ("");
-}
-
-bool WalletModel::writePendingNameFirstUpdate(const std::string &name, const std::string &rand, const std::string &txid, const std::string &data, const std::string &toaddress)
-{
-    return wallet->WritePendingNameFirstUpdate(name, rand, txid, data, toaddress);
-}
-
-bool WalletModel::pendingNameFirstUpdateExists(const std::string &name) const
-{
-    return wallet->PendingNameFirstUpdateExists(name);
-}
-
-bool WalletModel::getPendingNameFirstUpdate(const std::string &name, CNamePendingData *data) const
-{
-    return wallet->GetPendingNameFirstUpdate(name, data);
-}
-

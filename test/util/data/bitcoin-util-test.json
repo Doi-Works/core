@@ -22,6 +22,12 @@
     "description": "Creates a blank transaction when nothing is piped into namecoin-tx (output in json)"
   },
   { "exec": "./namecoin-tx",
+    "args": ["-create", "nversion=1foo"],
+    "return_code": 1,
+    "error_txt": "error: Invalid TX version requested",
+    "description": "Tests the check for invalid nversion value"
+  },
+  { "exec": "./namecoin-tx",
     "args": ["-", "delin=1"],
     "input": "tx394b54bb.hex",
     "output_cmp": "tt-delin1-out.hex",
@@ -39,6 +45,13 @@
     "return_code": 1,
     "error_txt": "error: Invalid TX input index '31'",
     "description": "Attempts to delete an input with a bad index from a transaction. Expected to fail."
+  },
+  { "exec": "./namecoin-tx",
+    "args": ["-", "delin=1foo"],
+    "input": "tx394b54bb.hex",
+    "return_code": 1,
+    "error_txt": "error: Invalid TX input index",
+    "description": "Tests the check for an invalid input index with delin"
   },
   { "exec": "./namecoin-tx",
     "args": ["-", "delout=1"],
@@ -60,6 +73,13 @@
     "description": "Attempts to delete an output with a bad index from a transaction. Expected to fail."
   },
   { "exec": "./namecoin-tx",
+    "args": ["-", "delout=1foo"],
+    "input": "tx394b54bb.hex",
+    "return_code": 1,
+    "error_txt": "error: Invalid TX output index",
+    "description": "Tests the check for an invalid output index with delout"
+  },
+  { "exec": "./namecoin-tx",
     "args": ["-", "locktime=317000"],
     "input": "tx394b54bb.hex",
     "output_cmp": "tt-locktime317000-out.hex",
@@ -70,6 +90,29 @@
     "input": "tx394b54bb.hex",
     "output_cmp": "tt-locktime317000-out.json",
     "description": "Adds an nlocktime to a transaction (output in json)"
+  },
+  { "exec": "./namecoin-tx",
+    "args": ["-create", "locktime=317000foo"],
+    "return_code": 1,
+    "error_txt": "error: Invalid TX locktime requested",
+    "description": "Tests the check for invalid locktime value"
+  },
+  { "exec": "./namecoin-tx",
+    "args":
+    ["-create",
+     "in=5897de6bd6027a475eadd57019d4e6872c396d0716c4875a5f1a6fcfdf385c1f:0",
+     "replaceable=0foo"],
+    "return_code": 1,
+    "error_txt": "error: Invalid TX input index",
+    "description": "Tests the check for an invalid input index with replaceable"
+  },
+  { "exec": "./namecoin-tx",
+    "args":
+    ["-create",
+     "in=5897de6bd6027a475eadd57019d4e6872c396d0716c4875a5f1a6fcfdf385c1f:0x"],
+    "return_code": 1,
+    "error_txt": "error: invalid TX input vout",
+    "description": "Tests the check for an invalid vout value when adding an input"
   },
   { "exec": "./namecoin-tx",
     "args":
@@ -139,12 +182,12 @@
   { "exec": "./namecoin-tx",
     "args": ["01000000000100000000000000000000000000"],
     "output_cmp": "txcreate2.hex",
-    "description": "Parses a transation with no inputs and a single output script"
+    "description": "Parses a transaction with no inputs and a single output script"
   },
   { "exec": "./namecoin-tx",
     "args": ["-json", "01000000000100000000000000000000000000"],
     "output_cmp": "txcreate2.json",
-    "description": "Parses a transation with no inputs and a single output script (output in json)"
+    "description": "Parses a transaction with no inputs and a single output script (output in json)"
   },
   { "exec": "./namecoin-tx",
     "args": ["-create", "outscript=0:OP_DROP", "nversion=1"],
@@ -202,12 +245,24 @@
     ["-json",
      "-create",
      "in=4d49a71ec9da436f71ec4ee231d04f292a29cd316f598bb7068feccabdc59485:0",
-     "set=privatekeys:[\"5HpHagT65TZzG1PH3CSu63k8DbpvD8s5ip4nEB3kEsreAnchuDf\"]",
+     "set=privatekeys:[\"72tzkjnkPajmGfbxBLirgivPqXrG1kgce3kNuxpMvxCoq86mi8f\"]",
      "set=prevtxs:[{\"txid\":\"4d49a71ec9da436f71ec4ee231d04f292a29cd316f598bb7068feccabdc59485\",\"vout\":0,\"scriptPubKey\":\"76a91491b24bf9f5288532960ac687abb035127b1d28a588ac\"}]",
      "sign=ALL",
      "outaddr=0.001:N4ckHzPuMSsmKHURcyE6zXqnAfEk2Mxd2P"],
     "output_cmp": "txcreatesign.json",
     "description": "Creates a new transaction with a single input and a single output, and then signs the transaction (output in json)"
+  },
+  { "exec": "./namecoin-tx",
+    "args":
+    ["-create",
+      "in=4d49a71ec9da436f71ec4ee231d04f292a29cd316f598bb7068feccabdc59485:0",
+      "set=privatekeys:[\"72tzkjnkPajmGfbxBLirgivPqXrG1kgce3kNuxpMvxCoq86mi8f\"]",
+      "set=prevtxs:[{\"txid\":\"4d49a71ec9da436f71ec4ee231d04f292a29cd316f598bb7068feccabdc59485\",\"vout\":\"0foo\",\"scriptPubKey\":\"76a91491b24bf9f5288532960ac687abb035127b1d28a588ac\"}]",
+      "sign=ALL",
+      "outaddr=0.001:N4ckHzPuMSsmKHURcyE6zXqnAfEk2Mxd2P"],
+    "return_code": 1,
+    "error_txt": "error: prevtxs internal object typecheck fail",
+    "description": "Tests the check for invalid vout index in prevtxs for sign"
   },
   { "exec": "./namecoin-tx",
     "args":
@@ -390,5 +445,74 @@
     "return_code": 1,
     "error_txt": "error: Uncompressed pubkeys are not useable for SegWit outputs",
     "description": "Ensure adding witness outputs with uncompressed pubkeys fails"
+  },
+  { "exec": "./namecoin-tx",
+    "args":
+    ["-create",
+     "outaddr=0.01:MyUGVwiPwomjPJwBBud1pxnmNp73dKB9s1",
+     "namenew=0:642f666f6f626172:1234"],
+    "output_cmp": "name_new.hex",
+    "description": "Creates a new transaction with a NAME_NEW output"
+  },
+  { "exec": "./namecoin-tx",
+    "args":
+    ["-create",
+     "outaddr=0.01:MyUGVwiPwomjPJwBBud1pxnmNp73dKB9s1",
+     "namefirstupdate=0:642f666f6f626172:76616c7565:1234"],
+    "output_cmp": "name_firstupdate.hex",
+    "description": "Creates a new transaction with a NAME_FIRSTUPDATE output"
+  },
+  { "exec": "./namecoin-tx",
+    "args":
+    ["-create",
+     "outaddr=0.01:MyUGVwiPwomjPJwBBud1pxnmNp73dKB9s1",
+     "nameupdate=0:642f666f6f626172:76616c7565"],
+    "output_cmp": "name_update.hex",
+    "description": "Creates a new transaction with a NAME_UPDATE output"
+  },
+  { "exec": "./namecoin-tx",
+    "args":
+    ["-create",
+     "outaddr=0.01:MyUGVwiPwomjPJwBBud1pxnmNp73dKB9s1",
+     "nameupdate=1:642f666f6f626172:76616c7565"],
+    "return_code": 1,
+    "error_txt": "error: invalid tx output index '1' for name operation",
+    "description": "Verify bounds check for name op output index"
+  },
+  { "exec": "./namecoin-tx",
+    "args":
+    ["-create",
+     "outaddr=0.01:MyUGVwiPwomjPJwBBud1pxnmNp73dKB9s1",
+     "nameupdate=0:nohex:"],
+    "return_code": 1,
+    "error_txt": "error: invalid hex argument 'nohex' for name operation",
+    "description": "Verify the check for valid hex arguments to name ops"
+  },
+  { "exec": "./namecoin-tx",
+    "args":
+    ["-create",
+     "outaddr=0.01:MyUGVwiPwomjPJwBBud1pxnmNp73dKB9s1",
+     "namenew=0:ff"],
+    "return_code": 1,
+    "error_txt": "error: namenew expects N:NAME:RAND",
+    "description": "Verify the number of arguments check for namenew"
+  },
+  { "exec": "./namecoin-tx",
+    "args":
+    ["-create",
+     "outaddr=0.01:MyUGVwiPwomjPJwBBud1pxnmNp73dKB9s1",
+     "namefirstupdate=0:ff"],
+    "return_code": 1,
+    "error_txt": "error: namefirstupdate expects N:NAME:VALUE:RAND",
+    "description": "Verify the number of arguments check for namefirstupdate"
+  },
+  { "exec": "./namecoin-tx",
+    "args":
+    ["-create",
+     "outaddr=0.01:MyUGVwiPwomjPJwBBud1pxnmNp73dKB9s1",
+     "nameupdate=0:ff"],
+    "return_code": 1,
+    "error_txt": "error: nameupdate expects N:NAME:VALUE",
+    "description": "Verify the number of arguments check for nameupdate"
   }
 ]
