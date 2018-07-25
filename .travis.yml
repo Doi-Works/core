@@ -64,11 +64,6 @@ before_script:
     - if [[ $HOST = *-mingw32 ]]; then DOCKER_EXEC update-alternatives --set $HOST-g++ \$\(which $HOST-g++-posix\); fi
     - if [ -z "$NO_DEPENDS" ]; then DOCKER_EXEC CONFIG_SHELL= make $MAKEJOBS -C depends HOST=$HOST $DEP_OPTS; fi
 script:
-<<<<<<< HEAD
-    - if [ "$CHECK_DOC" = 1 -a "$TRAVIS_REPO_SLUG" = "namecoin/namecoin-core" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then while read LINE; do travis_retry gpg --keyserver hkp://subset.pool.sks-keyservers.net --recv-keys $LINE; done < contrib/verify-commits/trusted-keys; fi
-    - if [ "$CHECK_DOC" = 1 -a "$TRAVIS_REPO_SLUG" = "namecoin/namecoin-core" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then contrib/verify-commits/verify-commits.sh; fi
-=======
->>>>>>> upstream_master/master
     - export TRAVIS_COMMIT_LOG=`git log --format=fuller -1`
     - OUTDIR=$BASE_OUTDIR/$TRAVIS_PULL_REQUEST/$TRAVIS_JOB_NUMBER-$HOST
     - BITCOIN_CONFIG_ALL="--disable-dependency-tracking --prefix=$TRAVIS_BUILD_DIR/depends/$HOST --bindir=$OUTDIR/bin --libdir=$OUTDIR/lib --without-comparison-tool"

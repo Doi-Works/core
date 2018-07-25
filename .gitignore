@@ -127,3 +127,4 @@ contrib/devtools/split-debug.sh
 
 #eclipse
 .project
+.pydevproject
