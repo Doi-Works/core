@@ -111,7 +111,7 @@ public:
     switch (op)
       {
       case OP_NAME_DOI:
-    	  return true;
+        return true;
       case OP_NAME_NEW:
       case OP_NAME_FIRSTUPDATE:
       case OP_NAME_UPDATE:

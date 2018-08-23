@@ -12,6 +12,7 @@
 #include <sync.h>
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -223,7 +224,7 @@ public:
     bool Read(CAutoFile& filein);
 
     /** Empty mempool transactions on shutdown to record failure to confirm for txs still in mempool */
-    void FlushUnconfirmed(CTxMemPool& pool);
+    void FlushUnconfirmed();
 
     /** Calculation of highest target that estimates are tracked for */
     unsigned int HighestTargetTracked(FeeEstimateHorizon horizon) const;
