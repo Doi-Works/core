@@ -1,9 +1,9 @@
 .PHONY: FORCE
 all: FORCE
-	$(MAKE) -C .. namecoin_qt test_namecoin_qt
+	$(MAKE) -C .. doichain_qt test_doichain_qt
 clean: FORCE
-	$(MAKE) -C .. namecoin_qt_clean test_namecoin_qt_clean
+	$(MAKE) -C .. doichain_qt_clean test_doichain_qt_clean
 check: FORCE
-	$(MAKE) -C .. test_namecoin_qt_check
-namecoin-qt namecoin-qt.exe: FORCE
-	 $(MAKE) -C .. namecoin_qt
+	$(MAKE) -C .. test_doichain_qt_check
+doichain-qt doichain-qt.exe: FORCE
+	 $(MAKE) -C .. doichain_qt

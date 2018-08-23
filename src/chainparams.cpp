@@ -66,7 +66,7 @@ static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits
 }
 
 /**
- * Build genesis block for testnet.  In Namecoin, it has a changed timestamp
+ * Build genesis block for testnet.  In Doichain, it has a changed timestamp
  * and output script (it uses Bitcoin's).
  */
 static CBlock CreateTestnetGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
@@ -131,7 +131,7 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 0; // Not yet enabled
 
         // The best chain should have at least this much work.
-        // The value is the chain work of the Namecoin mainnet chain at height
+        // The value is the chain work of the Doichain mainnet chain at height
         // 312,290, with best block hash:
         // c98df864dce972b1948314e98e96c8a86d2c0aaa80b421fe651e203f6bab9010
         //consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000ba50a60f8b56c7fe0");
@@ -266,7 +266,7 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 0; // Not yet enabled
 
         // The best chain should have at least this much work.
-        // The value is the chain work of the Namecoin testnet chain at height
+        // The value is the chain work of the Doichain testnet chain at height
         // 158,460, with best block hash:
         // cebebb916288ed48cd8a359576d900c550203883bf69fc8d5ed92c5d778a1e32
         consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000001c71");
@@ -296,7 +296,7 @@ public:
         vFixedSeeds.clear();
         vSeeds.clear();
         // nodes with support for servicebits filtering should be at the top
-        vSeeds.emplace_back("dnsseed.test.namecoin.webbtc.com");
+        vSeeds.emplace_back("dnsseed.test.doichain.webbtc.com");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);

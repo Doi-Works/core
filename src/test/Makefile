@@ -1,6 +1,6 @@
 all:
-	$(MAKE) -C .. namecoin_test
+	$(MAKE) -C .. doichain_test
 clean:
-	$(MAKE) -C .. namecoin_test_clean
+	$(MAKE) -C .. doichain_test_clean
 check:
-	$(MAKE) -C .. namecoin_test_check
+	$(MAKE) -C .. doichain_test_check
