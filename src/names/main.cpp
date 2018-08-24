@@ -305,25 +305,29 @@ CNameMemPool::check (const CCoinsView& coins) const
           assert (mit != mapNameDois.end ());
           assert (mit->second == txHash);
 
-          assert (mapNameDois.count (name) == 0);
+          assert (nameDois.count (name) == 0);
           nameDois.insert (name);
 
           /* As above, use nHeight+1 for the expiration check.  */
-          CNameData data; //TODO please enable or check while in regtest it is crashing here!
+          //CNameData data; //TODO please enable or check while in regtest it is crashing here!
           //if (!coins.GetName (name, data))
           //  assert (false);
-          //assert (!data.isExpired (nHeight + 1));
+          // assert (!data.isExpired (nHeight + 1));
         }
     }
 
   assert (nameRegs.size () == mapNameRegs.size ());
   assert (nameUpdates.size () == mapNameUpdates.size ());
-  assert (nameDois.size () == mapNameDois.size ());
+  //assert (nameDois.size () == mapNameDois.size ());
 
 
-  /* Check that nameRegs and nameUpdates are disjoint.  They must be since
+  /*
+     Check that nameRegs and nameUpdates are disjoint.  They must be since
      a name can only be in either category, depending on whether it exists
-     at the moment or not.  */
+     at the moment or not.
+
+     nameDois are different: they can exist or do not exist. so no assert here!
+  */
   for (const auto& name : nameRegs)
     assert (nameUpdates.count (name) == 0);
   for (const auto& name : nameUpdates)
