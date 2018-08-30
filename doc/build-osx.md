@@ -62,7 +62,7 @@ Build Doichain Core
 
         make check
 
-4.  You can also create a .dmg that contains the .app bundle (optional):
+4.  You can also create a .dmg that contains the .app build (optional):
 
         make deploy
 
