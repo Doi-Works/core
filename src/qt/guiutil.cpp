@@ -131,7 +131,7 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent)
 #if QT_VERSION >= 0x040700
     // We don't want translators to use own addresses in translations
     // and this is the only place, where this address is supplied.
-    widget->setPlaceholderText(QObject::tr("Enter a doichain address (e.g. %1)").arg(
+    widget->setPlaceholderText(QObject::tr("Enter a Doichain address (e.g. %1)").arg(
         QString::fromStdString(DummyAddress(Params()))));
 #endif
     widget->setValidator(new BitcoinAddressEntryValidator(parent));
@@ -619,10 +619,10 @@ fs::path static StartupShortcutPath()
 {
     std::string chain = ChainNameFromCommandLine();
     if (chain == CBaseChainParams::MAIN)
-        return GetSpecialFolderPath(CSIDL_STARTUP) / "doichain.lnk";
+        return GetSpecialFolderPath(CSIDL_STARTUP) / "Doichain.lnk";
     if (chain == CBaseChainParams::TESTNET) // Remove this special case when CBaseChainParams::TESTNET = "testnet4"
-        return GetSpecialFolderPath(CSIDL_STARTUP) / "doichain (testnet).lnk";
-    return GetSpecialFolderPath(CSIDL_STARTUP) / strprintf("doichain (%s).lnk", chain);
+        return GetSpecialFolderPath(CSIDL_STARTUP) / "Doichain (testnet).lnk";
+    return GetSpecialFolderPath(CSIDL_STARTUP) / strprintf("Doichain (%s).lnk", chain);
 }
 
 bool GetStartOnSystemStartup()
@@ -762,9 +762,9 @@ bool SetStartOnSystemStartup(bool fAutoStart)
         optionFile << "[Desktop Entry]\n";
         optionFile << "Type=Application\n";
         if (chain == CBaseChainParams::MAIN)
-            optionFile << "Name=doichain\n";
+            optionFile << "Name=Doichain\n";
         else
-            optionFile << strprintf("Name=doichain (%s)\n", chain);
+            optionFile << strprintf("Name=Doichain (%s)\n", chain);
         optionFile << "Exec=" << pszExePath << strprintf(" -min -testnet=%d -regtest=%d\n", gArgs.GetBoolArg("-testnet", false), gArgs.GetBoolArg("-regtest", false));
         optionFile << "Terminal=false\n";
         optionFile << "Hidden=false\n";

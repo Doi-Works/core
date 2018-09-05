@@ -140,7 +140,7 @@ name_show (const JSONRPCRequest& request)
 
   if (IsInitialBlockDownload ())
     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
-                       "doichain is downloading blocks...");
+                       "Doichain is downloading blocks...");
 
   ObserveSafeMode ();
 
@@ -190,7 +190,7 @@ name_history (const JSONRPCRequest& request)
 
   if (IsInitialBlockDownload ())
     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
-                       "doichain is downloading blocks...");
+                       "Doichain is downloading blocks...");
 
   ObserveSafeMode ();
 
@@ -250,7 +250,7 @@ name_scan (const JSONRPCRequest& request)
 
   if (IsInitialBlockDownload ())
     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
-                       "doichain is downloading blocks...");
+                       "Doichain is downloading blocks...");
 
   ObserveSafeMode ();
 
@@ -310,7 +310,7 @@ name_filter (const JSONRPCRequest& request)
 
   if (IsInitialBlockDownload ())
     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
-                       "doichain is downloading blocks...");
+                       "Doichain is downloading blocks...");
 
   ObserveSafeMode ();
 
@@ -467,7 +467,7 @@ name_pending (const JSONRPCRequest& request)
        i != txHashes.end (); ++i)
     {
       std::shared_ptr<const CTransaction> tx = mempool.get (*i);
-      if (!tx || !tx->Isdoichain ())
+      if (!tx || !tx->IsDoichain ())
         continue;
 
       for (const auto& txOut : tx->vout)
@@ -574,7 +574,7 @@ namerawtransaction (const JSONRPCRequest& request)
   CMutableTransaction mtx;
   if (!DecodeHexTx (mtx, request.params[0].get_str (), true))
     throw JSONRPCError (RPC_DESERIALIZATION_ERROR, "TX decode failed");
-  mtx.Setdoichain ();
+  mtx.SetDoichain ();
 
   const size_t nOut = request.params[1].get_int ();
   if (nOut >= mtx.vout.size ())

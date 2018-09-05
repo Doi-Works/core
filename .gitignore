@@ -7,12 +7,6 @@ src/bitcoin-tx
 src/test/test_bitcoin
 src/test/test_bitcoin_fuzzy
 src/qt/test/test_bitcoin-qt
-src/namecoind
-src/namecoin-cli
-src/namecoin-tx
-src/test/test_namecoin
-src/test/test_namecoin_fuzzy
-src/qt/test/test_namecoin-qt
 src/doichaind
 src/doichain-cli
 src/doichain-tx
@@ -87,10 +81,8 @@ src/qt/test/moc*.cpp
 *.qm
 Makefile
 bitcoin-qt
-namecoin-qt
 doichain-qt
 Bitcoin-Qt.app
-Namecoin-Qt.app
 Doichain-Qt.app
 background.tiff*
 
@@ -125,7 +117,6 @@ test/cache/*
 /doc/doxygen/
 
 libbitcoinconsensus.pc
-libnamecoinconsensus.pc
 libdoichainconsensus.pc
 contrib/devtools/split-debug.sh
 

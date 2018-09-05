@@ -28,7 +28,6 @@
 
 #include <init.h>
 #include <rpc/server.h>
-#include <scheduler.h>
 #include <ui_interface.h>
 #include <util.h>
 #include <warnings.h>
@@ -37,6 +36,7 @@
 #include <wallet/wallet.h>
 #endif
 
+#include <memory>
 #include <stdint.h>
 
 #include <boost/thread.hpp>
@@ -193,8 +193,6 @@ Q_SIGNALS:
     void runawayException(const QString &message);
 
 private:
-    boost::thread_group threadGroup;
-    CScheduler scheduler;
 
     /// Pass fatal exception message to UI thread
     void handleRunawayException(const std::exception *e);
@@ -300,7 +298,7 @@ void BitcoinCore::initialize()
     try
     {
         qDebug() << __func__ << ": Running initialization in thread";
-        bool rv = AppInitMain(threadGroup, scheduler);
+        bool rv = AppInitMain();
         Q_EMIT initializeResult(rv);
     } catch (const std::exception& e) {
         handleRunawayException(&e);
@@ -314,8 +312,7 @@ void BitcoinCore::shutdown()
     try
     {
         qDebug() << __func__ << ": Running Shutdown in thread";
-        Interrupt(threadGroup);
-        threadGroup.join_all();
+        Interrupt();
         Shutdown();
         qDebug() << __func__ << ": Shutdown finished";
         Q_EMIT shutdownResult();
@@ -392,7 +389,6 @@ void BitcoinApplication::createWindow(const NetworkStyle *networkStyle)
 
     pollShutdownTimer = new QTimer(window);
     connect(pollShutdownTimer, SIGNAL(timeout()), window, SLOT(detectShutdown()));
-    pollShutdownTimer->start(200);
 }
 
 void BitcoinApplication::createSplashScreen(const NetworkStyle *networkStyle)
@@ -519,19 +515,21 @@ void BitcoinApplication::initializeResult(bool success)
                          window, SLOT(message(QString,QString,unsigned int)));
         QTimer::singleShot(100, paymentServer, SLOT(uiReady()));
 #endif
+        pollShutdownTimer->start(200);
     } else {
-        quit(); // Exit main loop
+        Q_EMIT splashFinished(window); // Make sure splash screen doesn't stick around during shutdown
+        quit(); // Exit first main loop invocation
     }
 }
 
 void BitcoinApplication::shutdownResult()
 {
-    quit(); // Exit main loop after shutdown finished
+    quit(); // Exit second main loop invocation after shutdown finished
 }
 
 void BitcoinApplication::handleRunawayException(const QString &message)
 {
-    QMessageBox::critical(0, "Runaway exception", BitcoinGUI::tr("A fatal error occurred. doichain can no longer continue safely and will quit.") + QString("\n\n") + message);
+    QMessageBox::critical(0, "Runaway exception", BitcoinGUI::tr("A fatal error occurred. Doichain can no longer continue safely and will quit.") + QString("\n\n") + message);
     ::exit(EXIT_FAILURE);
 }
 
@@ -691,7 +689,7 @@ int main(int argc, char *argv[])
     // Allow parameter interaction before we create the options model
     app.parameterSetup();
     // Load GUI settings from QSettings
-    app.createOptionsModel(gArgs.IsArgSet("-resetguisettings"));
+    app.createOptionsModel(gArgs.GetBoolArg("-resetguisettings", false));
 
     // Subscribe to global signals from core
     uiInterface.InitMessage.connect(InitMessage);
@@ -709,7 +707,7 @@ int main(int argc, char *argv[])
         if (BitcoinCore::baseInitialize()) {
             app.requestInitialize();
 #if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
-            WinShutdownMonitor::registerShutdownBlockReason(QObject::tr("%1 didn't yet exit safely...").arg(QObject::tr(PACKAGE_NAME)), (HWND)app.getMainWinId());
+            WinShutdownMonitor::registerShutdownBlockReason(QObject::tr("%1 didn't yet exit safely...").arg(QObject::tr(PACKAGE_NAME)), static_cast<HWND>(app.getMainWinId()));
 #endif
             app.exec();
             app.requestShutdown();

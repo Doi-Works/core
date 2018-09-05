@@ -194,8 +194,8 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
     if (tx.IsCoinBase())
     {
         if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 106){ //TODO this was 100
-        	 //TODO printf("size: %u",tx.vin[0].scriptSig.size());
-        	 return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
+            //TODO printf("size: %u",tx.vin[0].scriptSig.size());
+            return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
         }
     }
     else
@@ -211,7 +211,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
 bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, unsigned flags, CAmount& txfee)
 {
     if (!CheckNameTransaction (tx, nSpendHeight, inputs, state, flags))
-        return state.Invalid(false, 0, "", "Tx invalid for doichain");
+        return state.Invalid(false, 0, "", "Tx invalid for Doichain");
 
     // are the actual inputs available?
     if (!inputs.HaveInputs(tx)) {

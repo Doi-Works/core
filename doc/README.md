@@ -1,13 +1,13 @@
-doichain Core
+Doichain Core
 ==============
 
 Setup
 ---------------------
-[doichain Core](http://doichain.org/) is the official doichain client and it builds the backbone of the network. However, it downloads and stores the entire history of doichain transactions (which is currently several GBs); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
+[Doichain Core](http://doichain.org/) is the official Doichain client and it builds the backbone of the network. However, it downloads and stores the entire history of Doichain transactions (which is currently several GBs); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
 
 Running
 ---------------------
-The following are some helpful notes on how to run doichain on your native platform.
+The following are some helpful notes on how to run Doichain on your native platform.
 
 ### Unix
 
@@ -22,13 +22,13 @@ Unpack the files into a directory, and then run doichain-qt.exe.
 
 ### OS X
 
-Drag doichain-Qt to your applications folder, and then run doichain-Qt.
+Drag Doichain-Qt to your applications folder, and then run Doichain-Qt.
 
 ### Need Help?
 
-* See the documentation at the [doichain Site](https://doichain.org) for help and more information.
+* See the documentation at the [Doichain Site](https://doichain.org) for help and more information.
 * Ask for help on [#doichain](http://webchat.freenode.net?channels=doichain) on Freenode. If you don't have an IRC client use [webchat here](http://webchat.freenode.net?channels=doichain).
-* Ask for help on the [doichain forums](https://forum.doichain.info/index.php), in the [Technical Support board](https://forum.doichain.info/viewforum.php?f=7).
+* Ask for help on the [Doichain forums](https://forum.doichain.info/index.php), in the [Technical Support board](https://forum.doichain.info/viewforum.php?f=7).
 
 Building
 ---------------------
@@ -39,11 +39,12 @@ The following are developer notes on how to build Bitcoin on your native platfor
 - [Unix Build Notes](build-unix.md)
 - [Windows Build Notes](build-windows.md)
 - [OpenBSD Build Notes](build-openbsd.md)
+- [NetBSD Build Notes](build-netbsd.md)
 - [Gitian Building Guide](gitian-building.md)
 
 Development
 ---------------------
-The doichain repo's [root README](https://github.com/doichain/namecore/blob/master/README.md) contains relevant information on the development process and automated testing.
+The Doichain repo's [root README](https://github.com/doichain/namecore/blob/master/README.md) contains relevant information on the development process and automated testing.
 
 - [Developer Notes](developer-notes.md)
 - [Release Notes](release-notes.md)
@@ -59,7 +60,7 @@ The doichain repo's [root README](https://github.com/doichain/namecore/blob/mast
 - [Benchmarking](benchmarking.md)
 
 ### Resources
-* Discuss on the [doichain forums](https://forum.doichain.info/index.php), in the [Development & Technical Discussion board](https://forum.doichain.info/viewforum.php?f=8).
+* Discuss on the [Doichain forums](https://forum.doichain.info/index.php), in the [Development & Technical Discussion board](https://forum.doichain.info/viewforum.php?f=8).
 * Discuss on [#doichain-dev](http://webchat.freenode.net/?channels=doichain-dev) on Freenode. If you don't have an IRC client use [webchat here](http://webchat.freenode.net/?channels=doichain-dev).
 
 ### Miscellaneous

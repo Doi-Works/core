@@ -1,4 +1,4 @@
-# Release Notes for doichain
+# Release Notes for Doichain
 
 - Previously, `createrawtransaction` supported a separate argument for creating
   name operations.  This has been removed, so that `createrawtransaction` now

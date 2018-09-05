@@ -16,14 +16,14 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "doichain"
-            VALUE "FileDescription",    "doichaind (doichain node with a JSON-RPC server)"
+            VALUE "CompanyName",        "Doichain"
+            VALUE "FileDescription",    "doichaind (Doichain node with a JSON-RPC server)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
             VALUE "InternalName",       "doichaind"
             VALUE "LegalCopyright",     COPYRIGHT_STR
             VALUE "LegalTrademarks1",   "Distributed under the MIT software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
             VALUE "OriginalFilename",   "doichaind.exe"
-            VALUE "ProductName",        "doichain Core"
+            VALUE "ProductName",        "Doichain Core"
             VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
         END
     END

@@ -31,7 +31,7 @@ static const unsigned MIN_FIRSTUPDATE_DEPTH = 0;
 static const unsigned MAX_VALUE_LENGTH_UI = 520;
 
 /** The amount of coins to lock in created transactions.  */
-static const CAmount NAME_LOCKED_AMOUNT = COIN / 50;
+static const CAmount NAME_LOCKED_AMOUNT = COIN / 100;
 
 /* ************************************************************************** */
 /* CNameTxUndo.  */
@@ -279,9 +279,9 @@ public:
 /* ************************************************************************** */
 
 /**
- * Check a transaction according to the additional doichain rules.  This
+ * Check a transaction according to the additional Doichain rules.  This
  * ensures that all name operations (if any) are valid and that it has
- * name operations iff it is marked as doichain tx by its version.
+ * name operations iff it is marked as Doichain tx by its version.
  * @param tx The transaction to check.
  * @param nHeight Height at which the tx will be.
  * @param view The current chain state.

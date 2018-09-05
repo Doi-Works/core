@@ -14,7 +14,6 @@
 
 #ifdef ENABLE_WALLET
 #include <qt/test/paymentservertests.h>
-#include <qt/test/managenamestests.h>
 #include <qt/test/wallettests.h>
 #endif
 
@@ -73,7 +72,7 @@ int main(int argc, char *argv[])
     // Don't remove this, it's needed to access
     // QApplication:: and QCoreApplication:: in the tests
     QApplication app(argc, argv);
-    app.setApplicationName("doichain-Qt-test");
+    app.setApplicationName("Doichain-Qt-test");
 
     SSL_library_init();
 
@@ -98,10 +97,6 @@ int main(int argc, char *argv[])
 #ifdef ENABLE_WALLET
     WalletTests test5;
     if (QTest::qExec(&test5) != 0) {
-        fInvalid = true;
-    }
-    ManageNamesTests test6;
-    if (QTest::qExec(&test6) != 0) {
         fInvalid = true;
     }
 #endif

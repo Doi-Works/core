@@ -29,16 +29,16 @@
   <string>????</string>
 
   <key>CFBundleExecutable</key>
-  <string>doichain-Qt</string>
+  <string>Doichain-Qt</string>
   
   <key>CFBundleName</key>
-  <string>doichain-Qt</string>
+  <string>Doichain-Qt</string>
 
   <key>LSHasLocalizedDisplayName</key>
   <true/>
 
   <key>CFBundleIdentifier</key>
-  <string>org.doichain.doichain-Qt</string>
+  <string>org.doichain.Doichain-Qt</string>
 
   <key>CFBundleURLTypes</key>
   <array>
@@ -46,7 +46,7 @@
       <key>CFBundleTypeRole</key>
       <string>Editor</string>
       <key>CFBundleURLName</key>
-      <string>org.doichain.doichainPayment</string>
+      <string>org.doichain.DoichainPayment</string>
       <key>CFBundleURLSchemes</key>
       <array>
         <string>doichain</string>
@@ -60,7 +60,7 @@
       <key>UTTypeIdentifier</key>
       <string>org.doichain.paymentrequest</string>
       <key>UTTypeDescription</key>
-      <string>doichain payment request</string>
+      <string>Doichain payment request</string>
       <key>UTTypeConformsTo</key>
       <array>
         <string>public.data</string>

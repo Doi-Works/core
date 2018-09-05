@@ -192,11 +192,11 @@ private:
     int UpdatePackagesForAdded(const CTxMemPool::setEntries& alreadyAdded, indexed_modified_transaction_set &mapModifiedTx);
     
     /**
-     * Verify if a tx can be added from a doichain perspective.  This may not
+     * Verify if a tx can be added from a Doichain perspective.  This may not
      * (yet) be the case if it is a NAME_FIRSTUPDATE with a not-yet-mature
      * NAME_NEW.  Those are allowed in the mempool, but not in blocks.
      */
-    bool TxAllowedFordoichain(const CTransaction& tx) const;
+    bool TxAllowedForDoichain(const CTransaction& tx) const;
     /** Check DB lock limit.  */
     bool DbLockLimitOk(const CTxMemPool::setEntries& candidates) const;
 };

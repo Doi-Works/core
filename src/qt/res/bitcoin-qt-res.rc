@@ -19,8 +19,8 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "doichain"
-            VALUE "FileDescription",    PACKAGE_NAME " (GUI node for doichain)"
+            VALUE "CompanyName",        "Doichain"
+            VALUE "FileDescription",    PACKAGE_NAME " (GUI node for Doichain)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
             VALUE "InternalName",       "doichain-qt"
             VALUE "LegalCopyright",     COPYRIGHT_STR

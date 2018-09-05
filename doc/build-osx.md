@@ -40,7 +40,7 @@ from the root of the repository.
 
 **Note**: You only need Berkeley DB if the wallet is enabled (see the section *Disable-Wallet mode* below).
 
-Build doichain Core
+Build Doichain Core
 ------------------------
 
 1. Clone the doichain source code and cd into `doichain-core`
@@ -62,26 +62,26 @@ Build doichain Core
 
         make check
 
-4.  You can also create a .dmg that contains the .app bundle (optional):
+4.  You can also create a .dmg that contains the .app build (optional):
 
         make deploy
 
 Running
 -------
 
-doichain Core is now available at `./src/doichaind`
+Doichain Core is now available at `./src/doichaind`
 
 Before running, it's recommended you create an RPC configuration file.
 
-    echo -e "rpcuser=doichainrpc\nrpcpassword=$(xxd -l 16 -p /dev/urandom)" > "/Users/${USER}/Library/Application Support/doichain/doichain.conf"
+    echo -e "rpcuser=doichainrpc\nrpcpassword=$(xxd -l 16 -p /dev/urandom)" > "/Users/${USER}/Library/Application Support/Doichain/doichain.conf"
 
-    chmod 600 "/Users/${USER}/Library/Application Support/doichain/doichain.conf"
+    chmod 600 "/Users/${USER}/Library/Application Support/Doichain/doichain.conf"
 
 The first time you run doichaind, it will start downloading the blockchain. This process could take several hours.
 
 You can monitor the download process by looking at the debug.log file:
 
-    tail -f $HOME/Library/Application\ Support/doichain/debug.log
+    tail -f $HOME/Library/Application\ Support/Doichain/debug.log
 
 Other commands:
 -------
@@ -89,23 +89,6 @@ Other commands:
     ./src/doichaind -daemon # Starts the doichain daemon.
     ./src/doichain-cli --help # Outputs a list of command-line options.
     ./src/doichain-cli help # Outputs a list of RPC commands when the daemon is running.
-
-Using Qt Creator as IDE
-------------------------
-You can use Qt Creator as an IDE, for doichain development.
-Download and install the community edition of [Qt Creator](https://www.qt.io/download/).
-Uncheck everything except Qt Creator during the installation process.
-
-1. Make sure you installed everything through Homebrew mentioned above
-2. Do a proper ./configure --enable-debug
-3. In Qt Creator do "New Project" -> Import Project -> Import Existing Project
-4. Enter "doichain-qt" as project name, enter src/qt as location
-5. Leave the file selection as it is
-6. Confirm the "summary page"
-7. In the "Projects" tab select "Manage Kits..."
-8. Select the default "Desktop" kit and select "Clang (x86 64bit in /usr/bin)" as compiler
-9. Select LLDB as debugger (you might need to set the path to your installation)
-10. Start debugging with Qt Creator
 
 Notes
 -----

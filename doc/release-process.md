@@ -3,17 +3,17 @@ Release Process
 
 Before every release candidate:
 
-* ( **Not in doichain yet.** ) Update translations (ping wumpus on IRC) see [translation_process.md](https://github.com/doichain/doichain-core/blob/master/doc/translation_process.md#synchronising-translations).
+* ( **Not in Doichain yet.** ) Update translations (ping wumpus on IRC) see [translation_process.md](https://github.com/doichain/doichain-core/blob/master/doc/translation_process.md#synchronising-translations).
 
 * Update manpages, see [gen-manpages.sh](https://github.com/bitcoin/bitcoin/blob/master/contrib/devtools/README.md#gen-manpagessh).
 
 Before every minor and major release:
 
-* ( **Not in doichain yet.** ) Update [bips.md](bips.md) to account for changes since the last release.
+* ( **Not in Doichain yet.** ) Update [bips.md](bips.md) to account for changes since the last release.
 * Update version in `configure.ac` (don't forget to set `CLIENT_VERSION_IS_RELEASE` to `true`)
 * Write release notes (see below)
 * Update `src/chainparams.cpp` nMinimumChainWork with information from the getblockchaininfo rpc.
-* Update `src/chainparams.cpp` defaultAssumeValid  with information from the getblockhash rpc.
+* Update `src/chainparams.cpp` defaultAssumeValid with information from the getblockhash rpc.
   - The selected value must not be orphaned so it may be useful to set the value two blocks back from the tip.
   - Testnet should be set some tens of thousands back from the tip due to reorgs there.
   - This update should be reviewed with a reindex-chainstate with assumevalid=0 to catch any defect
@@ -23,7 +23,8 @@ Before every major release:
 
 * Update hardcoded [seeds](/contrib/seeds/README.md), see [this pull request](https://github.com/bitcoin/bitcoin/pull/7415) for an example.
 * Update [`BLOCK_CHAIN_SIZE`](/src/qt/intro.cpp) to the current size plus some overhead.
-* Update `src/chainparams.cpp` chainTxData with statistics about the transaction count and rate.
+* Update `src/chainparams.cpp` chainTxData with statistics about the transaction count and rate. Use the output of the RPC `getchaintxstats`, see
+  [this pull request](https://github.com/bitcoin/bitcoin/pull/12270) for an example. Reviewers can verify the results by running `getchaintxstats <window_block_count> <window_last_block_hash>` with the `window_block_count` and `window_last_block_hash` from your output.
 * Update version of `contrib/gitian-descriptors/*.yml`: usually one'd want to do this on master after branching off the release - but be sure to at least do it before a new major release
 
 ### First time / New builders
@@ -34,17 +35,17 @@ Check out the source code in the following directory hierarchy.
 
     cd /path/to/your/toplevel/build
     git clone https://github.com/doichain/gitian.sigs.git
-    #git clone https://github.com/doichain/doichain-detached-sigs.git # doichain doesn't use detached sigs yet, so don't do this.
+    #git clone https://github.com/doichain/doichain-detached-sigs.git # Doichain doesn't use detached sigs yet, so don't do this.
     git clone https://github.com/devrandom/gitian-builder.git
     git clone https://github.com/doichain/doichain-core.git
 
-### doichain maintainers/release engineers, suggestion for writing release notes
+### Doichain maintainers/release engineers, suggestion for writing release notes
 
 Write release notes. git shortlog helps a lot, for example:
 
     git shortlog --no-merges nc(current version, e.g. 0.7.2)..nc(new version, e.g. 0.8.0)
 
-( **Not in doichain yet.** ) (or ping @wumpus on IRC, he has specific tooling to generate the list of merged pulls
+( **Not in Doichain yet.** ) (or ping @wumpus on IRC, he has specific tooling to generate the list of merged pulls
 and sort them into categories based on labels)
 
 Generate list of authors:
@@ -108,7 +109,7 @@ NOTE: Offline builds must use the --url flag to ensure Gitian fetches only from 
 
 The gbuild invocations below <b>DO NOT DO THIS</b> by default.
 
-### Build and sign doichain Core for Linux, Windows, and OS X:
+### Build and sign Doichain Core for Linux, Windows, and OS X:
 
     pushd ./gitian-builder
     ./bin/gbuild --num-make 2 --memory 3000 --commit doichain=nc${VERSION} ../doichain-core/contrib/gitian-descriptors/gitian-linux.yml
@@ -136,10 +137,7 @@ Build output expected:
 
 ### Verify other gitian builders signatures to your own. (Optional)
 
-Add other gitian builders keys to your gpg keyring, and/or refresh keys.
-
-    gpg --import doichain-core/contrib/gitian-keys/*.pgp
-    gpg --refresh-keys
+Add other gitian builders keys to your gpg keyring, and/or refresh keys: See `../doichain/contrib/gitian-keys/README.md`.
 
 Verify the signatures
 
@@ -161,7 +159,7 @@ Commit your signature to gitian.sigs:
     git push  # Assuming you can push to the gitian.sigs tree
     popd
 
-( **Not in doichain yet.** )
+( **Not in Doichain yet.** )
 
 Codesigner only: Create Windows/OS X detached signatures:
 - Only one person handles codesigning. Everyone else should skip to the next step.
@@ -199,7 +197,7 @@ Non-codesigners: wait for Windows/OS X detached signatures:
 - Once the Windows/OS X builds each have 3 matching signatures, they will be signed with their respective release keys.
 - Detached signatures will then be committed to the [doichain-detached-sigs](https://github.com/doichain/doichain-detached-sigs) repository, which can be combined with the unsigned apps to create signed binaries.
 
-( **Not in doichain yet.** ) Create (and optionally verify) the signed OS X binary:
+( **Not in Doichain yet.** ) Create (and optionally verify) the signed OS X binary:
 
     pushd ./gitian-builder
     ./bin/gbuild -i --commit signature=nc${VERSION} ../doichain-core/contrib/gitian-descriptors/gitian-osx-signer.yml
@@ -208,7 +206,7 @@ Non-codesigners: wait for Windows/OS X detached signatures:
     mv build/out/doichain-osx-signed.dmg ../doichain-${VERSION}-osx.dmg
     popd
 
-( **Not in doichain yet.** ) Create (and optionally verify) the signed Windows binaries:
+( **Not in Doichain yet.** ) Create (and optionally verify) the signed Windows binaries:
 
     pushd ./gitian-builder
     ./bin/gbuild -i --commit signature=nc${VERSION} ../doichain-core/contrib/gitian-descriptors/gitian-win-signer.yml
@@ -218,7 +216,7 @@ Non-codesigners: wait for Windows/OS X detached signatures:
     mv build/out/doichain-*win32-setup.exe ../doichain-${VERSION}-win32-setup.exe
     popd
 
-( **Not in doichain yet.** ) Commit your signature for the signed OS X/Windows binaries:
+( **Not in Doichain yet.** ) Commit your signature for the signed OS X/Windows binaries:
 
     pushd gitian.sigs
     git add ${VERSION}-osx-signed/${SIGNER}
@@ -263,7 +261,7 @@ rm SHA256SUMS
 (the digest algorithm is forced to sha256 to avoid confusion of the `Hash:` header that GPG adds with the SHA256 used for the files)
 Note: check that SHA256SUMS itself doesn't end up in SHA256SUMS, which is a spurious/nonsensical entry.
 
-( **The following is not in doichain yet.** )
+( **The following is not in Doichain yet.** )
 
 - Upload zips and installers, as well as `SHA256SUMS.asc` from last step, to the bitcoin.org server
   into `/var/www/bin/bitcoin-core-${VERSION}`

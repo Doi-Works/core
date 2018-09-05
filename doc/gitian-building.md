@@ -1,9 +1,9 @@
 Gitian building
 ================
 
-*Setup instructions for a Gitian build of doichain using a Debian VM or physical system.*
+*Setup instructions for a Gitian build of Doichain using a Debian VM or physical system.*
 
-Gitian is the deterministic build process that is used to build the doichain
+Gitian is the deterministic build process that is used to build the Doichain
 Core executables. It provides a way to be reasonably sure that the
 executables are really built from the source on GitHub. It also makes sure that
 the same, tested dependencies are used and statically built into the executable.
@@ -26,7 +26,7 @@ Table of Contents
 - [Installing Gitian](#installing-gitian)
 - [Setting up the Gitian image](#setting-up-the-gitian-image)
 - [Getting and building the inputs](#getting-and-building-the-inputs)
-- [Building doichain](#building-doichain)
+- [Building Doichain](#building-doichain)
 - [Building an alternative repository](#building-an-alternative-repository)
 - [Signing externally](#signing-externally)
 - [Uploading signatures](#uploading-signatures)
@@ -349,10 +349,10 @@ manual intervention. Also optionally follow the next step: 'Seed the Gitian sour
 and offline git repositories' which will fetch the remaining files required for building
 offline.
 
-Building doichain
+Building Doichain
 ----------------
 
-To build doichain (for Linux, OS X and Windows) just follow the steps under 'perform
+To build Doichain (for Linux, OS X and Windows) just follow the steps under 'perform
 Gitian builds' in [doc/release-process.md](release-process.md#perform-gitian-builds) in the doichain-core repository.
 
 This may take some time as it will build all the dependencies needed for each descriptor.
@@ -408,7 +408,7 @@ COMMIT=hardfork-nmc
 Building fully offline
 -----------------------
 
-**Note: doichain does not yet use detatched sigs; this section might not be relevant.**
+**Note: Doichain does not yet use detatched sigs; this section might not be relevant.**
 
 For building fully offline including attaching signatures to unsigned builds, the detached-sigs repository
 and the doichain-core git repository with the desired tag must both be available locally, and then gbuild must be

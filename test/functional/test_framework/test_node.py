@@ -18,6 +18,7 @@ from .authproxy import JSONRPCException
 from .util import (
     assert_equal,
     base_node_args,
+    delete_cookie_file,
     get_rpc_proxy,
     rpc_url,
     wait_until,
@@ -71,8 +72,19 @@ class TestNode():
         self.rpc = None
         self.url = None
         self.log = logging.getLogger('TestFramework.node%d' % i)
+        self.cleanup_on_exit = True # Whether to kill the node when this object goes away
 
         self.p2ps = []
+
+    def __del__(self):
+        # Ensure that we don't leave any bitcoind processes lying around after
+        # the test ends
+        if self.process and self.cleanup_on_exit:
+            # Should only happen on test failure
+            # Avoid using logger, as that may have already been shutdown when
+            # this destructor is called.
+            print("Cleaning up leftover process")
+            self.process.kill()
 
     def __getattr__(self, name):
         """Dispatches any unrecognised messages to the RPC connection or a CLI instance."""
@@ -89,6 +101,10 @@ class TestNode():
             extra_args = self.extra_args
         if stderr is None:
             stderr = self.stderr
+        # Delete any existing cookie file -- if such a file exists (eg due to
+        # unclean shutdown), it will get overwritten anyway by bitcoind, and
+        # potentially interfere with our attempt to authenticate
+        delete_cookie_file(self.datadir)
         self.process = subprocess.Popen(self.args + extra_args + base_args, stderr=stderr, *args, **kwargs)
         self.running = True
         self.log.debug("doichaind started, waiting for RPC to come up")
@@ -215,16 +231,16 @@ class TestNodeCLI():
     """Interface to bitcoin-cli for an individual node"""
 
     def __init__(self, binary, datadir):
-        self.args = []
+        self.options = []
         self.binary = binary
         self.datadir = datadir
         self.input = None
         self.log = logging.getLogger('TestFramework.bitcoincli')
 
-    def __call__(self, *args, input=None):
-        # TestNodeCLI is callable with bitcoin-cli command-line args
+    def __call__(self, *options, input=None):
+        # TestNodeCLI is callable with bitcoin-cli command-line options
         cli = TestNodeCLI(self.binary, self.datadir)
-        cli.args = [str(arg) for arg in args]
+        cli.options = [str(o) for o in options]
         cli.input = input
         return cli
 
@@ -240,16 +256,18 @@ class TestNodeCLI():
                results.append(dict(error=e))
         return results
 
-    def send_cli(self, command, *args, **kwargs):
+    def send_cli(self, command=None, *args, **kwargs):
         """Run bitcoin-cli command. Deserializes returned string as python object."""
 
         pos_args = [str(arg) for arg in args]
         named_args = [str(key) + "=" + str(value) for (key, value) in kwargs.items()]
         assert not (pos_args and named_args), "Cannot use positional arguments and named arguments in the same bitcoin-cli call"
-        p_args = [self.binary, "-datadir=" + self.datadir] + self.args
+        p_args = [self.binary, "-datadir=" + self.datadir] + self.options
         if named_args:
             p_args += ["-named"]
-        p_args += [command] + pos_args + named_args
+        if command is not None:
+            p_args += [command]
+        p_args += pos_args + named_args
         self.log.debug("Running bitcoin-cli command: %s" % command)
         process = subprocess.Popen(p_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         cli_stdout, cli_stderr = process.communicate(input=self.input)

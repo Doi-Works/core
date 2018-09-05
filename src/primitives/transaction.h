@@ -266,7 +266,7 @@ class CTransaction
 public:
     // Default transaction version.
     // FIXME: Upstream Bitcoin has default version set to 2 already.  Do this
-    // once we forked to make the tx version irrelevant for doichain.
+    // once we forked to make the tx version irrelevant for Doichain.
     static const int32_t CURRENT_VERSION=1;
     static const int32_t doichain_VERSION=0x7100;
 
@@ -338,7 +338,7 @@ public:
         return (vin.size() == 1 && vin[0].prevout.IsNull());
     }
 
-    bool Isdoichain() const
+    bool IsDoichain() const
     {
         return nVersion == doichain_VERSION;
     }
@@ -414,10 +414,10 @@ struct CMutableTransaction
     }
 
     /**
-     * Turn this into a doichain version transaction.  It is assumed
+     * Turn this into a Doichain version transaction.  It is assumed
      * that it isn't already.
      */
-    void Setdoichain();
+    void SetDoichain();
 };
 
 typedef std::shared_ptr<const CTransaction> CTransactionRef;

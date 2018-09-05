@@ -84,29 +84,12 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             if(fAllFromMe > mine) fAllFromMe = mine;
         }
 
-        // if we find a name script we put it here. display in transaction
-        // records hand off the boolean, foundNameOp
-        bool foundNameOp = false;
-        CNameScript nameScript;
-        std::string nameAddress;
-
         isminetype fAllToMe = ISMINE_SPENDABLE;
         for (const CTxOut& txout : wtx.tx->vout)
         {
             isminetype mine = wallet->IsMine(txout);
             if(mine & ISMINE_WATCH_ONLY) involvesWatchAddress = true;
             if(fAllToMe > mine) fAllToMe = mine;
-
-            // check txout for nameop
-            const CNameScript cur(txout.scriptPubKey);
-            CTxDestination address;
-            if(cur.isNameOp ())
-            {
-                foundNameOp = true;
-                nameScript = cur;
-                ExtractDestination(txout.scriptPubKey, address);
-                nameAddress = EncodeDestination(address);
-            }
         }
 
         if (fAllFromMe && fAllToMe)
@@ -114,23 +97,8 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             // Payment to self
             CAmount nChange = wtx.GetChange();
 
-            if(foundNameOp)
-            {
-                std::string opName = GetOpName(nameScript.getNameOp());
-                std::string description = nameAddress + " " + opName.substr(3);
-
-                if(nameScript.isAnyUpdate())
-                    description += " " + ValtypeToString(nameScript.getOpName());
-
-                parts.append(TransactionRecord(hash, nTime, TransactionRecord::NameOp, description,
-                                               -(nDebit - nChange), nCredit - nChange));
-            }
-            else
-            {
-                parts.append(TransactionRecord(hash, nTime, TransactionRecord::SendToSelf, "",
-                                               -(nDebit - nChange), nCredit - nChange));
-            }
-
+            parts.append(TransactionRecord(hash, nTime, TransactionRecord::SendToSelf, "",
+                            -(nDebit - nChange), nCredit - nChange));
             parts.last().involvesWatchAddress = involvesWatchAddress;   // maybe pass to TransactionRecord as constructor argument
         }
         else if (fAllFromMe)
@@ -237,10 +205,6 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
             if (wtx.IsInMainChain())
             {
                 status.matures_in = wtx.GetBlocksToMaturity();
-
-                // Check if the block was requested by anyone
-                if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
-                    status.status = TransactionStatus::MaturesWarning;
             }
             else
             {
@@ -257,10 +221,6 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
         if (status.depth < 0)
         {
             status.status = TransactionStatus::Conflicted;
-        }
-        else if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
-        {
-            status.status = TransactionStatus::Offline;
         }
         else if (status.depth == 0)
         {

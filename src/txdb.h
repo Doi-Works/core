@@ -11,6 +11,7 @@
 #include <chain.h>
 
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -46,7 +47,7 @@ struct CDiskTxPos : public CDiskBlockPos
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action) {
-        READWRITE(*(CDiskBlockPos*)this);
+        READWRITE(*static_cast<CDiskBlockPos*>(this));
         READWRITE(VARINT(nTxOffset));
     }
 

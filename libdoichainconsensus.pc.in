@@ -1,11 +1,11 @@
-prefix=/usr/local
-exec_prefix=${prefix}
-libdir=${exec_prefix}/lib
-includedir=${prefix}/include
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
 
-Name: doichain Core consensus library
+Name: @PACKAGE_NAME@ consensus library
 Description: Library for the Bitcoin consensus protocol.
-Version: 0.15.99
+Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -ldoichainconsensus
 Cflags: -I${includedir}
 Requires.private: libcrypto

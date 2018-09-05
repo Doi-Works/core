@@ -1,23 +1,23 @@
-DoiChain Core integration/staging tree
+Doichain Core integration/staging tree
 =====================================
 
 [![Build Status](https://travis-ci.org/doichain/doichain-core.svg?branch=master)](https://travis-ci.org/doichain/doichain-core)
 
 https://doichain.org
 
-What is DoiChain? 
+What is Doichain?
 ----------------
 
-DoiChain is a decentralized open source email double-opt-in registration system based on the doichain and Bitcoin cryptocurrency.
+Doichain is a decentralized open source information registration and transfer system based on the Bitcoin cryptocurrency.
 
 What does it do?
 ----------------
 
-* Securely records doupble-opt-in email permissions for email sender.
-* Test 
-* Transact doi, the digital currency (DOI).
+* Securely record and transfer arbitrary names (keys).
+* Attach a value (data) to the names (up to 520 bytes, more in the future).
+* Transact doichains, the digital currency (ℕ, DOI).
 
-doichain was the first fork of Bitcoin and still is one of the most innovative altcoins. It was first to implement merged mining and a decentralized DNS. doichain squares Zooko's Triangle!
+Doichain was the first fork of Bitcoin and still is one of the most innovative altcoins. It was first to implement merged mining and a decentralized DNS. Doichain squares Zooko's Triangle!
 
 What can it be used for?
 ----------------
@@ -29,13 +29,13 @@ What can it be used for?
 * File signatures, Voting, bonds/stocks,/shares, web of trust, escrow and notary services (to be implemented).
 
 ~~For more information, as well as an immediately useable, binary version of~~
-~~the doichain Core software, see https://doichain.org/?p=download.~~
+~~the Doichain Core software, see https://doichain.org/?p=download.~~
 Public binary downloads are not yet posted.
 
 License
 -------
 
-doichain Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
+Doichain Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
 information or see https://opensource.org/licenses/MIT.
 
 Development Process
@@ -43,7 +43,7 @@ Development Process
 
 The `master` branch is regularly built and tested, but is not guaranteed to be
 completely stable. [Tags](https://github.com/doichain/doichain-core/tags) are created
-regularly to indicate new official, stable release versions of doichain Core.
+regularly to indicate new official, stable release versions of Doichain Core.
 
 The contribution workflow is described in [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -84,7 +84,7 @@ not straightforward.
 Translations
 ------------
 
-**Translation workflow is not yet set up for doichain Core.  For strings which are common to Bitcoin Core, see below.**
+**Translation workflow is not yet set up for Doichain Core.  For strings which are common to Bitcoin Core, see below.**
 
 Changes to translations as well as new translations can be submitted to
 [Bitcoin Core's Transifex page](https://www.transifex.com/projects/p/bitcoin/).

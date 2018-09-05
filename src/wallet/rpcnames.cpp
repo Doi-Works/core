@@ -110,7 +110,7 @@ name_list (const JSONRPCRequest& request)
   for (const auto& item : pwallet->mapWallet)
     {
       const CWalletTx& tx = item.second;
-      if (!tx.tx->Isdoichain ())
+      if (!tx.tx->IsDoichain ())
         continue;
 
       CNameScript nameOp;
@@ -626,7 +626,7 @@ sendtoname (const JSONRPCRequest& request)
 
   if (IsInitialBlockDownload ())
     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
-                       "doichain is downloading blocks...");
+                       "Doichain is downloading blocks...");
 
   ObserveSafeMode ();
   LOCK2 (cs_main, pwallet->cs_wallet);

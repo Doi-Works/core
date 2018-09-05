@@ -85,9 +85,10 @@ BITCOIN_TESTS =\
   test/transaction_tests.cpp \
   test/txvalidation_tests.cpp \
   test/txvalidationcache_tests.cpp \
-  test/versionbits_tests.cpp \
   test/uint256_tests.cpp \
-  test/util_tests.cpp
+  test/util_tests.cpp \
+  test/validation_block_tests.cpp \
+  test/versionbits_tests.cpp
 
 if ENABLE_WALLET
 BITCOIN_TESTS += \
@@ -95,8 +96,7 @@ BITCOIN_TESTS += \
   wallet/test/wallet_test_fixture.h \
   wallet/test/accounting_tests.cpp \
   wallet/test/wallet_tests.cpp \
-  wallet/test/crypto_tests.cpp \
-  wallet/test/wallet_name_pending_tests.cpp
+  wallet/test/crypto_tests.cpp
 endif
 
 test_test_doichain_SOURCES = $(BITCOIN_TESTS) $(JSON_TEST_FILES) $(RAW_TEST_FILES)
