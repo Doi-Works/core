@@ -237,7 +237,8 @@ am__DIST_COMMON = $(srcdir)/Makefile.in \
 	$(top_srcdir)/test/functional/test_runner.py \
 	$(top_srcdir)/test/util/bitcoin-util-test.py COPYING \
 	build-aux/compile build-aux/config.guess build-aux/config.sub \
-	build-aux/install-sh build-aux/ltmain.sh build-aux/missing
+	build-aux/depcomp build-aux/install-sh build-aux/ltmain.sh \
+	build-aux/missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -311,19 +312,19 @@ CCACHE =
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
 CLIENT_VERSION_BUILD = 0
-CLIENT_VERSION_IS_RELEASE = false
+CLIENT_VERSION_IS_RELEASE = true
 CLIENT_VERSION_MAJOR = 0
-CLIENT_VERSION_MINOR = 15
-CLIENT_VERSION_REVISION = 99
+CLIENT_VERSION_MINOR = 16
+CLIENT_VERSION_REVISION = 2
 COPYRIGHT_HOLDERS = The %s developers
-COPYRIGHT_HOLDERS_FINAL = The Bitcoin Core and doichain developers
-COPYRIGHT_HOLDERS_SUBSTITUTION = Bitcoin Core and doichain
+COPYRIGHT_HOLDERS_FINAL = The Bitcoin Core and Doichain developers
+COPYRIGHT_HOLDERS_SUBSTITUTION = Bitcoin Core and Doichain
 COPYRIGHT_YEAR = 2018
 CPP = gcc -E
 CPPFILT = /usr/bin/c++filt
 CPPFLAGS =  -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS -I/usr/local/opt/berkeley-db@4/include -DMAC_OSX
-CRYPTO_CFLAGS = -I/usr/local/Cellar/openssl/1.0.2o_2/include
-CRYPTO_LIBS = -L/usr/local/Cellar/openssl/1.0.2o_2/lib -lcrypto
+CRYPTO_CFLAGS = -I/usr/local/Cellar/openssl/1.0.2p/include
+CRYPTO_LIBS = -L/usr/local/Cellar/openssl/1.0.2p/lib -lcrypto
 CXX = g++ -std=c++11
 CXXCPP = g++ -std=c++11 -E
 CXXDEPMODE = depmode=gcc3
@@ -402,11 +403,11 @@ OTOOL = otool
 OTOOL64 = :
 PACKAGE = doichain
 PACKAGE_BUGREPORT = https://github.com/doichain/doichain-core/issues
-PACKAGE_NAME = doichain Core
-PACKAGE_STRING = doichain Core 0.15.99
+PACKAGE_NAME = Doichain Core
+PACKAGE_STRING = Doichain Core 0.16.2
 PACKAGE_TARNAME = doichain
 PACKAGE_URL = https://www.doichain.org/
-PACKAGE_VERSION = 0.15.99
+PACKAGE_VERSION = 0.16.2
 PATH_SEPARATOR = :
 PIC_FLAGS = -fPIC
 PIE_FLAGS = -fPIE
@@ -455,8 +456,8 @@ SED = /usr/bin/sed
 SET_MAKE = 
 SHELL = /bin/sh
 SSE42_CXXFLAGS = -msse4.2
-SSL_CFLAGS = -I/usr/local/Cellar/openssl/1.0.2o_2/include
-SSL_LIBS = -L/usr/local/Cellar/openssl/1.0.2o_2/lib -lssl
+SSL_CFLAGS = -I/usr/local/Cellar/openssl/1.0.2p/include
+SSL_LIBS = -L/usr/local/Cellar/openssl/1.0.2p/lib -lssl
 STRIP = /usr/bin/strip
 TESTDEFS =  -DBOOST_TEST_DYN_LINK
 TIFFCP = 
@@ -465,14 +466,14 @@ UNIVALUE_CFLAGS = -I$(srcdir)/univalue/include
 UNIVALUE_LIBS = univalue/libunivalue.la
 USE_QRCODE = 
 USE_UPNP = 
-VERSION = 0.15.99
+VERSION = 0.16.2
 WINDOWS_BITS = 
 WINDRES = 
 X11XCB_CFLAGS = 
 X11XCB_LIBS = 
 XGETTEXT = 
-ZMQ_CFLAGS = 
-ZMQ_LIBS = 
+ZMQ_CFLAGS = -I/usr/local/Cellar/zeromq/4.2.5/include
+ZMQ_LIBS = -L/usr/local/Cellar/zeromq/4.2.5/lib -lzmq
 abs_builddir = /Users/nico/Documents/projekte/doichain/doichain-core
 abs_srcdir = /Users/nico/Documents/projekte/doichain/doichain-core
 abs_top_builddir = /Users/nico/Documents/projekte/doichain/doichain-core
@@ -539,7 +540,7 @@ BITCOIN_CLI_BIN = $(top_builddir)/src/$(BITCOIN_CLI_NAME)$(EXEEXT)
 BITCOIN_WIN_INSTALLER = $(PACKAGE)-$(PACKAGE_VERSION)-win$(WINDOWS_BITS)-setup$(EXEEXT)
 empty := 
 space := $(empty) $(empty)
-OSX_APP = doichain-Qt.app
+OSX_APP = Doichain-Qt.app
 OSX_VOLNAME = $(subst $(space),-,$(PACKAGE_NAME))
 OSX_DMG = $(OSX_VOLNAME).dmg
 OSX_BACKGROUND_SVG = background.svg
@@ -584,7 +585,7 @@ COVERAGE_INFO = baseline.info \
 
 OSX_APP_BUILT = $(OSX_APP)/Contents/PkgInfo $(OSX_APP)/Contents/Resources/empty.lproj \
   $(OSX_APP)/Contents/Resources/bitcoin.icns $(OSX_APP)/Contents/Info.plist \
-  $(OSX_APP)/Contents/MacOS/doichain-Qt $(OSX_APP)/Contents/Resources/Base.lproj/InfoPlist.strings
+  $(OSX_APP)/Contents/MacOS/Doichain-Qt $(OSX_APP)/Contents/Resources/Base.lproj/InfoPlist.strings
 
 #APP_DIST_DIR = $(top_builddir)/dist
 #APP_DIST_EXTRAS = $(APP_DIST_DIR)/.background/$(OSX_BACKGROUND_IMAGE) $(APP_DIST_DIR)/.DS_Store $(APP_DIST_DIR)/Applications
@@ -1197,7 +1198,7 @@ $(OSX_APP)/Contents/Resources/bitcoin.icns: $(OSX_INSTALLER_ICONS)
 	$(MKDIR_P) $(@D)
 	$(INSTALL_DATA) $< $@
 
-$(OSX_APP)/Contents/MacOS/doichain-Qt: $(BITCOIN_QT_BIN)
+$(OSX_APP)/Contents/MacOS/Doichain-Qt: $(BITCOIN_QT_BIN)
 	$(MKDIR_P) $(@D)
 	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM)  $< $@
 
@@ -1224,7 +1225,7 @@ deploydir: $(OSX_DMG)
 #	@rm -f $@
 #	@cd $(@D); $(LN_S) /Applications $(@F)
 
-#$(APP_DIST_EXTRAS): $(APP_DIST_DIR)/$(OSX_APP)/Contents/MacOS/doichain-Qt
+#$(APP_DIST_EXTRAS): $(APP_DIST_DIR)/$(OSX_APP)/Contents/MacOS/Doichain-Qt
 
 #$(OSX_DMG): $(APP_DIST_EXTRAS)
 #	$(GENISOIMAGE) -no-cache-inodes -D -l -probe -V "$(OSX_VOLNAME)" -no-pad -r -dir-mode 0755 -apple -o $@ dist
@@ -1238,7 +1239,7 @@ deploydir: $(OSX_DMG)
 #$(APP_DIST_DIR)/.DS_Store: $(OSX_DSSTORE_GEN)
 #	$(PYTHON) $< "$@" "$(OSX_VOLNAME)"
 
-#$(APP_DIST_DIR)/$(OSX_APP)/Contents/MacOS/doichain-Qt: $(OSX_APP_BUILT) $(OSX_PACKAGING)
+#$(APP_DIST_DIR)/$(OSX_APP)/Contents/MacOS/Doichain-Qt: $(OSX_APP_BUILT) $(OSX_PACKAGING)
 #	INSTALLNAMETOOL=$(INSTALLNAMETOOL)  OTOOL=$(OTOOL) STRIP=$(STRIP) $(PYTHON) $(OSX_DEPLOY_SCRIPT) $(OSX_APP) -translations-dir=$(QT_TRANSLATION_DIR) -add-qt-tr $(OSX_QT_TRANSLATIONS) -verbose 2
 
 #deploydir: $(APP_DIST_EXTRAS)
