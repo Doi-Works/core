@@ -30,7 +30,8 @@ RUN mkdir .doichain && \
 	sudo make install
 
 #Copy start scripts
-WORKDIR /home/doichain/doichain-core/
+WORKDIR /home/doichain/doichain-core
+RUN ls -l
 COPY contrib/docker/entrypoint.sh entrypoint.sh
 COPY contrib/docker/start.sh start.sh
 COPY contrib/docker/getblocktimes.sh getblocktimes.sh
@@ -58,10 +59,10 @@ RUN mkdir data && \
 
 #Run entrypoint
 WORKDIR /home/doichain
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/home/doichain/doichain-core/contrib/docker/entrypoint.sh"]
 
 #Start doichain and meteor
-CMD ["start.sh"]
+CMD ["/home/doichain/doichain-core/contrib/docker/start.sh"]
 
 #Expose ports
 EXPOSE $NODE_PORT $RPC_PORT_REGTEST
