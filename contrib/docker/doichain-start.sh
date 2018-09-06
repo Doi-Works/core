@@ -8,6 +8,5 @@ _TESTNET=''
 if [ $TESTNET = true ]; then
 	_TESTNET='-testnet -addnode='$CONNECTION_NODE
 fi
-
 doichaind $_REGTEST $_TESTNET
-
+sleep 100000

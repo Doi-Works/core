@@ -31,19 +31,15 @@ RUN mkdir .doichain && \
 
 #Copy start scripts
 WORKDIR /home/doichain/doichain-core
-RUN ls -l
 COPY contrib/docker/entrypoint.sh entrypoint.sh
-COPY contrib/docker/start.sh start.sh
 COPY contrib/docker/getblocktimes.sh getblocktimes.sh
 COPY contrib/docker/doichain-start.sh doichain-start.sh
 
 RUN sudo dos2unix \
 	entrypoint.sh \
-	start.sh \
 	doichain-start.sh && \
 	sudo chmod +x \
 	entrypoint.sh \
-	start.sh \
 	doichain-start.sh \
 	getblocktimes.sh && \
 	sudo apt-get purge -y dos2unix && \
@@ -59,10 +55,9 @@ RUN mkdir data && \
 
 #Run entrypoint
 WORKDIR /home/doichain
-ENTRYPOINT ["/home/doichain/doichain-core/contrib/docker/entrypoint.sh"]
+ENTRYPOINT ["/home/doichain/doichain-core/entrypoint.sh"]
 
-#Start doichain and meteor
-CMD ["/home/doichain/doichain-core/contrib/docker/start.sh"]
+CMD ["/home/doichain/doichain-core/doichain-start.sh"]
 
 #Expose ports
 EXPOSE $NODE_PORT $RPC_PORT_REGTEST
