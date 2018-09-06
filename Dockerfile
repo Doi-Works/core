@@ -1,4 +1,4 @@
-FROM doichain/core-base
+FROM doichain/docker:core-base
 
 ARG DOICHAIN_VER=master
 ENV DOICHAIN_VER $DOICHAIN_VER
@@ -22,7 +22,7 @@ ENV RPC_USER admin
 #Install doichain-core
 WORKDIR /home/doichain
 RUN mkdir .doichain && \
-	sudo git clone --branch ${DOICHAIN_VER} https://github.com/Doichain/core.git doichain-core && \
+	sudo git clone --branch ${DOICHAIN_VER} --depth 1 https://github.com/Doichain/core.git doichain-core && \
 	cd doichain-core && \
 	sudo ./autogen.sh && \
 	sudo ./configure --without-gui  --disable-tests  --disable-gui-tests CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" && \
@@ -30,7 +30,7 @@ RUN mkdir .doichain && \
 	sudo make install
 
 #Copy start scripts
-WORKDIR /home/doichain/scripts/
+WORKDIR /home/doichain/doichain-core/
 COPY contrib/docker/entrypoint.sh entrypoint.sh
 COPY contrib/docker/start.sh start.sh
 COPY contrib/docker/getblocktimes.sh getblocktimes.sh
