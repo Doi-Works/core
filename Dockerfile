@@ -58,10 +58,10 @@ RUN mkdir data && \
 
 #Run entrypoint
 WORKDIR /home/doichain
-ENTRYPOINT ["contrib/docker/entrypoint.sh"]
+ENTRYPOINT ["entrypoint.sh"]
 
 #Start doichain and meteor
-CMD ["contrib/docker/start.sh"]
+CMD ["start.sh"]
 
 #Expose ports
 EXPOSE $NODE_PORT $RPC_PORT_REGTEST
