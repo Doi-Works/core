@@ -639,7 +639,7 @@ ApplyNameTransaction (const CTransaction& tx, unsigned nHeight,
         for (unsigned i = 0; i < tx.vout.size (); ++i)
           {
             const CNameScript op(tx.vout[i].scriptPubKey);
-            if (op.isNameOp () && op.isAnyUpdate ())
+            if (op.isNameOp () && (op.isAnyUpdate () || op.isDoiRegistration ()))
               view.SpendCoin (COutPoint (txHash, i));
           }
       return;
