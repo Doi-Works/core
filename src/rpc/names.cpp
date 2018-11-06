@@ -473,7 +473,8 @@ name_pending (const JSONRPCRequest& request)
       for (const auto& txOut : tx->vout)
         {
           const CNameScript op(txOut.scriptPubKey);
-          if ((!op.isNameOp () || !op.isAnyUpdate ()) && !op.isDoiRegistration ())
+
+          if (!op.isNameOp () || (!op.isAnyUpdate () && !op.isDoiRegistration ()))
             continue;
 
           const valtype vchName = op.getOpName ();

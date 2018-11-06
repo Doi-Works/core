@@ -674,7 +674,7 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
         for (const auto& txout : tx.vout)
         {
             const CNameScript nameOp(txout.scriptPubKey);
-            if (nameOp.isNameOp() && nameOp.isAnyUpdate())
+            if (nameOp.isNameOp() && (nameOp.isAnyUpdate() || nameOp.isDoiRegistration()))
             {
                 const valtype& name = nameOp.getOpName();
                 CNameData data;
