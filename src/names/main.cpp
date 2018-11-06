@@ -81,21 +81,21 @@ CNameMemPool::getTxForName (const valtype& name) const
   mi = mapNameRegs.find (name);
   if (mi != mapNameRegs.end ())
     {
-      assert (mapNameUpdates.count (name) == 0 && mapNameDois.count (name));
+      assert (mapNameUpdates.count (name) == 0 && mapNameDois.count (name) == 0);
       return mi->second;
     }
 
   mi = mapNameUpdates.find (name);
   if (mi != mapNameUpdates.end ())
     {
-      assert (mapNameRegs.count (name) == 0 && mapNameDois.count (name));
+      assert (mapNameRegs.count (name) == 0 && mapNameDois.count (name) == 0);
       return mi->second;
     }
 
   mi = mapNameDois.find (name);
   if (mi != mapNameDois.end ())
     {
-      assert (mapNameRegs.count (name) == 0 && mapNameUpdates.count (name));
+      assert (mapNameRegs.count (name) == 0 && mapNameUpdates.count (name)==0);
       return mi->second;
     }
 
@@ -318,7 +318,7 @@ CNameMemPool::check (const CCoinsView& coins) const
 
   assert (nameRegs.size () == mapNameRegs.size ());
   assert (nameUpdates.size () == mapNameUpdates.size ());
-  //assert (nameDois.size () == mapNameDois.size ());
+  assert (nameDois.size () == mapNameDois.size ());
 
 
   /*
