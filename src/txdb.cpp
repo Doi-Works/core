@@ -387,12 +387,12 @@ bool CCoinsViewDB::ValidateNameDB() const
             if (!coin.out.IsNull())
             {
                 const CNameScript nameOp(coin.out.scriptPubKey);
-                if (nameOp.isNameOp() && nameOp.isAnyUpdate())  // no || nameOp.isDoiRegistration() here? is that possible?
+                if (nameOp.isNameOp() && (nameOp.isAnyUpdate() || nameOp.isDoiRegistration()))
                 {
                     const valtype& name = nameOp.getOpName();
-                    if (namesInUTXO.count(name) > 0) //
-                        return error("%s : name %s duplicated in UTXO set",
-                                     __func__, ValtypeToString(name).c_str());
+                    if (namesInUTXO.count(name) > 0 && !nameOp.isDoiRegistration())  //TODO is that entirely correct?
+                            return error("%s : name %s duplicated in UTXO set",
+                                        __func__, ValtypeToString(name).c_str());
                     namesInUTXO.insert(nameOp.getOpName());
                 }
             }
