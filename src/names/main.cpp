@@ -505,7 +505,6 @@ CheckNameTransaction (const CTransaction& tx, unsigned nHeight,
         return state.Invalid (error ("%s: non-Doichain tx %s at height %u"
                                      " has name outputs",
                                      __func__, txid, nHeight));
-      LogPrintf ("CheckNameTransaction Step2\n");
       return true;
     }
 
