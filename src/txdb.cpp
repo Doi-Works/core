@@ -395,7 +395,7 @@ bool CCoinsViewDB::ValidateNameDB() const
                                         __func__, ValtypeToString(name).c_str());
                     namesInUTXO.insert(nameOp.getOpName());
                 }
-                else if(nameOp.isNameOp() && nameOp.isDoiRegistration()){
+                if(nameOp.isNameOp() && nameOp.isDoiRegistration()){
                      const valtype& name = nameOp.getOpName();
                      namesInUTXO.insert(nameOp.getOpName());
                 }
@@ -422,7 +422,7 @@ bool CCoinsViewDB::ValidateNameDB() const
             /* Expiration is checked at height+1, because that matches
                how the UTXO set is cleared in ExpireNames.  */
             assert(namesInDB.count(name) == 0);
-            //if (!data.isExpired(nHeight + 1))
+            if (!data.isExpired(nHeight + 1))
                 namesInDB.insert(name);
             break;
         }
@@ -471,7 +471,10 @@ bool CCoinsViewDB::ValidateNameDB() const
     if (nameHeightsIndex != nameHeightsData)
         return error("%s : name height data mismatch", __func__);
 
-    for (const auto& name : namesInDB)
+    /*
+    TODO this check here is since name_doi not possible anymore - but do we need a kind of new check here?
+
+        for (const auto& name : namesInDB)
         if (namesInUTXO.count(name) == 0)
             return error("%s : name '%s' in DB but not UTXO set",
                          __func__, ValtypeToString(name).c_str());
@@ -479,6 +482,7 @@ bool CCoinsViewDB::ValidateNameDB() const
         if (namesInDB.count(name) == 0)
             return error("%s : name '%s' in UTXO set but not DB",
                          __func__, ValtypeToString(name).c_str());
+                         */
 
     if (fNameHistory)
     {

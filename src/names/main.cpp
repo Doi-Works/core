@@ -326,7 +326,7 @@ CNameMemPool::check (const CCoinsView& coins) const
      a name can only be in either category, depending on whether it exists
      at the moment or not.
 
-     nameDois are different: they can exist or do not exist. so no assert here!
+     nameDois are different: they can already exist or not . so no assert here!
   */
   for (const auto& name : nameRegs)
     assert (nameUpdates.count (name) == 0);
