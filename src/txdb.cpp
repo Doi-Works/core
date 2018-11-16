@@ -395,7 +395,7 @@ bool CCoinsViewDB::ValidateNameDB() const
                                         __func__, ValtypeToString(name).c_str());
                     namesInUTXO.insert(nameOp.getOpName());
                 }
-                else if(nameOp.isNameOp() && nameOp.isAnyUpdate()){
+                else if(nameOp.isNameOp() && nameOp.isDoiRegistration()){
                      const valtype& name = nameOp.getOpName();
                      namesInUTXO.insert(nameOp.getOpName());
                 }
