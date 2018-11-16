@@ -387,13 +387,17 @@ bool CCoinsViewDB::ValidateNameDB() const
             if (!coin.out.IsNull())
             {
                 const CNameScript nameOp(coin.out.scriptPubKey);
-                if (nameOp.isNameOp() && (nameOp.isAnyUpdate() || nameOp.isDoiRegistration()))
+                if (nameOp.isNameOp() && nameOp.isAnyUpdate())
                 {
                     const valtype& name = nameOp.getOpName();
-                    if (namesInUTXO.count(name) > 0 && !nameOp.isDoiRegistration())  //TODO is that entirely correct?
+                    if (namesInUTXO.count(name) > 0)
                             return error("%s : name %s duplicated in UTXO set",
                                         __func__, ValtypeToString(name).c_str());
                     namesInUTXO.insert(nameOp.getOpName());
+                }
+                else if(nameOp.isNameOp() && nameOp.isAnyUpdate()){
+                     const valtype& name = nameOp.getOpName();
+                     namesInUTXO.insert(nameOp.getOpName());
                 }
             }
             break;
